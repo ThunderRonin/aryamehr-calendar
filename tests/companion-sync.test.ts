@@ -7,6 +7,8 @@ import {
   createPersonalEvent,
   formatSyncTime,
 } from "../src/core/calendar-sync";
+import { parseICS } from "../src/core/ical-parser";
+import { loadCachedEvents, saveCachedEvents, clearCachedEvents } from "../src/core/calendar-storage";
 import { createSettingsPageConfig } from "../src/setting/index";
 import {
   syncAndFetchCalendarEvents,
@@ -77,7 +79,7 @@ test("parsePersonalEventDateTime parses Jalaali and Gregorian formats", () => {
   const d1 = new Date(j1.startTimestamp);
   assert.equal(d1.getHours(), 10);
   assert.equal(d1.getMinutes(), 30);
-  assert.equal(j1.endTimestamp - j1.startTimestamp, 3600 * 1000); // 1 hour
+  assert.equal(j1.endTimestamp - j1.startTimestamp, 3600 * 1000);
 
   // Jalaali date only (all day) with Persian digits
   const j2 = parsePersonalEventDateTime("۱۴۰۵/۰۶/۱۵");
@@ -91,7 +93,7 @@ test("parsePersonalEventDateTime parses Jalaali and Gregorian formats", () => {
   assert.equal(g1.isAllDay, false);
   const dg1 = new Date(g1.startTimestamp);
   assert.equal(dg1.getFullYear(), 2026);
-  assert.equal(dg1.getMonth(), 8); // September (0-indexed)
+  assert.equal(dg1.getMonth(), 8);
   assert.equal(dg1.getDate(), 6);
   assert.equal(dg1.getHours(), 14);
 
@@ -119,7 +121,6 @@ test("createPersonalEvent generates valid CalendarEvent item", () => {
 });
 
 test("formatSyncTime formats timestamps into readable Persian date/time", () => {
-  // September 6, 2026 12:00:00 UTC
   const ts = new Date(2026, 8, 6, 12, 30).getTime();
   const formatted = formatSyncTime(ts);
   assert.ok(formatted.includes("1405/06/16") || formatted.includes("1405/06/15"));
@@ -145,17 +146,18 @@ test("Settings Page config handles state, URL change, event add, delete, and bui
     "https://example.com/calendar.ics"
   );
 
-  // 3. Add personal event
+  // 3. Add personal event (verifying no redundant syncTrigger written)
   const added = page.addPersonalEvent("جلسه کاری", "1405/06/15 10:00");
   assert.equal(added, true);
   const storedEvents = JSON.parse(storage.getItem("personalEvents")!);
   assert.equal(storedEvents.length, 1);
   assert.equal(storedEvents[0].title, "جلسه کاری");
-  assert.ok(storage.getItem("syncTrigger"));
+  assert.equal(storage.getItem("syncTrigger"), null);
 
   // 4. Trigger manual sync
   page.triggerSync();
   assert.equal(storage.getItem("syncStatus"), "در حال همگام‌سازی...");
+  assert.ok(storage.getItem("syncTrigger"));
 
   // 5. Rebuild with stored data
   storage.setItem("lastSyncTime", String(Date.now()));
@@ -172,7 +174,6 @@ test("Settings Page config handles state, URL change, event add, delete, and bui
 test("syncAndFetchCalendarEvents downloads ICS, parses events, and integrates personal events", async () => {
   const storage = new MockSettingsStorage();
 
-  // Setup mock personal event
   const personalEv = createPersonalEvent("نوبت دندان‌پزشکی", "1405/06/20 15:30")!;
   storage.setItem("personalEvents", JSON.stringify([personalEv]));
   storage.setItem(
@@ -180,7 +181,6 @@ test("syncAndFetchCalendarEvents downloads ICS, parses events, and integrates pe
     "webcal://calendar.google.com/basic.ics"
   );
 
-  // Sample valid ICS feed content
   const sampleICS = [
     "BEGIN:VCALENDAR",
     "VERSION:2.0",
@@ -205,19 +205,63 @@ test("syncAndFetchCalendarEvents downloads ICS, parses events, and integrates pe
 
   const events = await syncAndFetchCalendarEvents(storage, mockFetch);
 
-  // Verify webcal was sanitized to https
   assert.equal(fetchedUrl, "https://calendar.google.com/basic.ics");
-
-  // Verify both ICS event and personal event are present
   assert.equal(events.length, 2);
   const titles = events.map((e) => e.title);
   assert.ok(titles.includes("جلسه بررسی پروژه"));
   assert.ok(titles.includes("نوبت دندان‌پزشکی"));
-
-  // Verify settings storage was updated
   assert.equal(storage.getItem("syncedEventCount"), "2");
   assert.ok(storage.getItem("lastSyncTime"));
   assert.ok(storage.getItem("syncStatus")?.includes("موفقیت"));
+});
+
+test("syncAndFetchCalendarEvents flags HTTP error status codes properly", async () => {
+  const storage = new MockSettingsStorage();
+  storage.setItem("calendarUrl", "https://example.com/notfound.ics");
+
+  const http404Fetch = async () => ({
+    status: 404,
+    body: "Not Found",
+  });
+
+  const events = await syncAndFetchCalendarEvents(storage, http404Fetch);
+  assert.equal(events.length, 0);
+  assert.ok(storage.getItem("syncStatus")?.includes("HTTP 404"));
+});
+
+test("syncAndFetchCalendarEvents validates complete URL before attempting fetch", async () => {
+  const storage = new MockSettingsStorage();
+  storage.setItem("calendarUrl", "invalid-incomplete-url");
+
+  let fetchCalled = false;
+  const mockFetch = async () => {
+    fetchCalled = true;
+    return { status: 200, body: "" };
+  };
+
+  const events = await syncAndFetchCalendarEvents(storage, mockFetch);
+  assert.equal(fetchCalled, false);
+  assert.ok(storage.getItem("syncStatus")?.includes("نامعتبر"));
+});
+
+test("syncAndFetchCalendarEvents deduplicates concurrent sync cycles", async () => {
+  const storage = new MockSettingsStorage();
+  storage.setItem("calendarUrl", "https://example.com/concurrent.ics");
+
+  let callCount = 0;
+  const slowFetch = async () => {
+    callCount++;
+    await new Promise((r) => setTimeout(r, 20));
+    return { status: 200, body: "BEGIN:VCALENDAR\r\nEND:VCALENDAR" };
+  };
+
+  const [res1, res2] = await Promise.all([
+    syncAndFetchCalendarEvents(storage, slowFetch),
+    syncAndFetchCalendarEvents(storage, slowFetch),
+  ]);
+
+  assert.equal(callCount, 1);
+  assert.deepEqual(res1, res2);
 });
 
 test("syncAndFetchCalendarEvents works without calendar URL (personal events only)", async () => {
@@ -243,7 +287,6 @@ test("syncAndFetchCalendarEvents handles network failure gracefully and returns 
   };
 
   const events = await syncAndFetchCalendarEvents(storage, failingFetch);
-  // Still returns personal event despite network failure
   assert.equal(events.length, 1);
   assert.equal(events[0].title, "یادآوری مهم");
   assert.ok(storage.getItem("syncStatus")?.includes("خطا"));

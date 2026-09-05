@@ -11,6 +11,13 @@ import {
   createPersonalEvent,
   formatSyncTime,
 } from "../core/calendar-sync";
+import {
+  buildHeaderSection,
+  buildSubscriptionSection,
+  buildSyncSection,
+  buildQuickAddSection,
+  buildEventListSection,
+} from "./components";
 
 declare const AppSettingsPage: any;
 declare const View: any;
@@ -41,9 +48,7 @@ export function createSettingsPageConfig() {
       if (!props || !props.settingsStorage) return;
 
       const storedUrl = props.settingsStorage.getItem("calendarUrl");
-      if (storedUrl) {
-        this.state.calendarUrl = storedUrl;
-      }
+      if (storedUrl) this.state.calendarUrl = storedUrl;
 
       const storedEvents = props.settingsStorage.getItem("personalEvents");
       if (storedEvents) {
@@ -82,8 +87,6 @@ export function createSettingsPageConfig() {
         );
         this.state.props.settingsStorage.setItem("draftEventTitle", "");
         this.state.props.settingsStorage.setItem("draftEventDate", "");
-        // Trigger sync
-        this.state.props.settingsStorage.setItem("syncTrigger", String(Date.now()));
       }
       return true;
     },
@@ -95,7 +98,6 @@ export function createSettingsPageConfig() {
           "personalEvents",
           JSON.stringify(this.state.personalEvents)
         );
-        this.state.props.settingsStorage.setItem("syncTrigger", String(Date.now()));
       }
     },
 
@@ -129,77 +131,13 @@ export function createSettingsPageConfig() {
       const draftTitle = storage?.getItem("draftEventTitle") || this.state.newTitle || "";
       const draftDate = storage?.getItem("draftEventDate") || this.state.newDate || "";
 
-      // List of personal events items
-      const eventElements: any[] = [];
-      personalEvents.forEach((item) => {
-        const itemDateStr =
-          item.description ||
-          (item.isAllDay
-            ? "تمام روز"
-            : new Date(item.startTimestamp).toLocaleDateString("fa-IR"));
-        eventElements.push(
-          View(
-            {
-              style: {
-                display: "flex",
-                flexDirection: "row",
-                justifyContent: "space-between",
-                alignItems: "center",
-                padding: "8px 12px",
-                borderBottom: "1px solid #f1f5f9",
-              },
-            },
-            [
-              View(
-                {
-                  style: {
-                    flex: 1,
-                    display: "flex",
-                    flexDirection: "column",
-                  },
-                },
-                [
-                  Text(
-                    {
-                      style: {
-                        fontSize: "14px",
-                        fontWeight: "bold",
-                        color: "#1e293b",
-                      },
-                      text: item.title,
-                    },
-                    [item.title]
-                  ),
-                  Text(
-                    {
-                      style: {
-                        fontSize: "12px",
-                        color: "#64748b",
-                        marginTop: "2px",
-                      },
-                      text: itemDateStr,
-                    },
-                    [itemDateStr]
-                  ),
-                ]
-              ),
-              Button({
-                label: "حذف",
-                style: {
-                  fontSize: "12px",
-                  borderRadius: "16px",
-                  background: "#ef4444",
-                  color: "#ffffff",
-                  padding: "4px 10px",
-                },
-                onClick: () => {
-                  this.deletePersonalEvent(item.id);
-                },
-              }),
-            ]
-          )
-        );
-      });
+      const eventListSection = buildEventListSection(
+        View,
+        Text,
+        Button,
+        personalEvents,
+        (id) => this.deletePersonalEvent(id)
+      );
 
       return View(
         {
@@ -211,280 +149,41 @@ export function createSettingsPageConfig() {
           },
         },
         [
-          // Header
-          View(
-            {
-              style: {
-                textAlign: "center",
-                marginBottom: "16px",
-                padding: "12px",
-                background: "linear-gradient(135deg, #1e293b 0%, #0f172a 100%)",
-                borderRadius: "12px",
-                color: "#ffffff",
-              },
-            },
-            [
-              Text(
-                {
-                  style: {
-                    fontSize: "18px",
-                    fontWeight: "bold",
-                    color: "#f8fafc",
-                  },
-                  text: "تقویم آریامهر | تنظیمات و همگام‌سازی",
-                },
-                ["تقویم آریامهر | تنظیمات و همگام‌سازی"]
-              ),
-              Text(
-                {
-                  style: {
-                    fontSize: "12px",
-                    color: "#94a3b8",
-                    marginTop: "4px",
-                  },
-                  text:
-                    "همگام‌سازی تقویم‌های ابری (گوگل، آی‌کلود، اوت‌لوک) و رویدادهای شخصی با ساعت",
-                },
-                [
-                  "همگام‌سازی تقویم‌های ابری (گوگل، آی‌کلود، اوت‌لوک) و رویدادهای شخصی با ساعت",
-                ]
-              ),
-            ]
+          buildHeaderSection(View, Text),
+          buildSubscriptionSection(View, Text, TextInput, calendarUrl, (val) =>
+            this.setCalendarUrl(val)
           ),
-
-          // Subscription URL Section
-          View(
-            {
-              style: {
-                backgroundColor: "#ffffff",
-                borderRadius: "12px",
-                padding: "16px",
-                marginBottom: "16px",
-                border: "1px solid #e2e8f0",
-              },
-            },
-            [
-              Text(
-                {
-                  style: {
-                    fontSize: "14px",
-                    fontWeight: "bold",
-                    color: "#0f172a",
-                    marginBottom: "6px",
-                  },
-                  text: "🔗 اشتراک تقویم اینترنتی (ICS / iCal Feed URL)",
-                },
-                ["🔗 اشتراک تقویم اینترنتی (ICS / iCal Feed URL)"]
-              ),
-              Text(
-                {
-                  style: {
-                    fontSize: "11px",
-                    color: "#64748b",
-                    marginBottom: "8px",
-                  },
-                  text:
-                    "آدرس تقویم Google, Apple iCloud, Microsoft Outlook یا WebCal خود را وارد کنید:",
-                },
-                [
-                  "آدرس تقویم Google, Apple iCloud, Microsoft Outlook یا WebCal خود را وارد کنید:",
-                ]
-              ),
-              TextInput({
-                label: "",
-                placeholder: "https://calendar.google.com/.../basic.ics",
-                value: calendarUrl,
-                subStyle: {
-                  fontSize: "13px",
-                  color: "#334155",
-                },
-                onChange: (val: string) => {
-                  this.setCalendarUrl(val);
-                },
-              }),
-            ]
+          buildSyncSection(
+            View,
+            Text,
+            Button,
+            syncStatus,
+            lastSyncFormatted,
+            syncedCount,
+            () => this.triggerSync()
           ),
-
-          // Sync Action & Status Section
-          View(
-            {
-              style: {
-                backgroundColor: "#ffffff",
-                borderRadius: "12px",
-                padding: "16px",
-                marginBottom: "16px",
-                border: "1px solid #e2e8f0",
-              },
+          buildQuickAddSection(
+            View,
+            Text,
+            TextInput,
+            Button,
+            draftTitle,
+            draftDate,
+            (val) => {
+              this.state.newTitle = val;
+              storage?.setItem("draftEventTitle", val);
             },
-            [
-              Button({
-                label: "🔄 همگام‌سازی تقویم (Sync Now)",
-                style: {
-                  fontSize: "15px",
-                  fontWeight: "bold",
-                  borderRadius: "8px",
-                  background: "#0284c7",
-                  color: "#ffffff",
-                  padding: "12px 16px",
-                  textAlign: "center",
-                  width: "100%",
-                },
-                onClick: () => {
-                  this.triggerSync();
-                },
-              }),
-              View(
-                {
-                  style: {
-                    marginTop: "12px",
-                    padding: "10px",
-                    backgroundColor: "#f1f5f9",
-                    borderRadius: "8px",
-                    border: "1px solid #cbd5e1",
-                  },
-                },
-                [
-                  Text(
-                    {
-                      style: {
-                        fontSize: "12px",
-                        color: "#334155",
-                      },
-                      text: `📌 وضعیت: ${syncStatus}`,
-                    },
-                    [`📌 وضعیت: ${syncStatus}`]
-                  ),
-                  Text(
-                    {
-                      style: {
-                        fontSize: "12px",
-                        color: "#334155",
-                        marginTop: "4px",
-                      },
-                      text: `🕒 آخرین همگام‌سازی: ${lastSyncFormatted}`,
-                    },
-                    [`🕒 آخرین همگام‌سازی: ${lastSyncFormatted}`]
-                  ),
-                  Text(
-                    {
-                      style: {
-                        fontSize: "12px",
-                        color: "#334155",
-                        marginTop: "4px",
-                      },
-                      text: `📊 رویدادهای همگام‌شده: ${syncedCount} رویداد`,
-                    },
-                    [`📊 رویدادهای همگام‌شده: ${syncedCount} رویداد`]
-                  ),
-                ]
-              ),
-            ]
-          ),
-
-          // Quick Add Event Section
-          View(
-            {
-              style: {
-                backgroundColor: "#ffffff",
-                borderRadius: "12px",
-                padding: "16px",
-                marginBottom: "16px",
-                border: "1px solid #e2e8f0",
-              },
+            (val) => {
+              this.state.newDate = val;
+              storage?.setItem("draftEventDate", val);
             },
-            [
-              Text(
-                {
-                  style: {
-                    fontSize: "14px",
-                    fontWeight: "bold",
-                    color: "#0f172a",
-                    marginBottom: "4px",
-                  },
-                  text: "➕ افزودن رویداد شخصی (Quick Add Event)",
-                },
-                ["➕ افزودن رویداد شخصی (Quick Add Event)"]
-              ),
-              Text(
-                {
-                  style: {
-                    fontSize: "11px",
-                    color: "#64748b",
-                    marginBottom: "8px",
-                  },
-                  text: "ثبت مستقیم جلسات و یادآوری‌ها برای نمایش اختصاصی روی ساعت:",
-                },
-                ["ثبت مستقیم جلسات و یادآوری‌ها برای نمایش اختصاصی روی ساعت:"]
-              ),
-              TextInput({
-                label: "عنوان رویداد",
-                placeholder: "مثال: جلسه کاری، نوبت پزشک، تولد",
-                value: draftTitle,
-                onChange: (val: string) => {
-                  this.state.newTitle = val;
-                  storage?.setItem("draftEventTitle", val);
-                },
-              }),
-              TextInput({
-                label: "تاریخ و ساعت",
-                placeholder: "1405/06/15 10:30 یا 2026-09-06 10:30",
-                value: draftDate,
-                onChange: (val: string) => {
-                  this.state.newDate = val;
-                  storage?.setItem("draftEventDate", val);
-                },
-              }),
-              Button({
-                label: "افزودن رویداد به تقویم ساعت",
-                style: {
-                  fontSize: "13px",
-                  borderRadius: "8px",
-                  background: "#10b981",
-                  color: "#ffffff",
-                  marginTop: "8px",
-                  padding: "8px 14px",
-                  textAlign: "center",
-                },
-                onClick: () => {
-                  const title = storage?.getItem("draftEventTitle") || this.state.newTitle;
-                  const date = storage?.getItem("draftEventDate") || this.state.newDate;
-                  this.addPersonalEvent(title, date);
-                },
-              }),
-            ]
+            () => {
+              const title = storage?.getItem("draftEventTitle") || this.state.newTitle;
+              const date = storage?.getItem("draftEventDate") || this.state.newDate;
+              this.addPersonalEvent(title, date);
+            }
           ),
-
-          // Personal Events List
-          ...(eventElements.length > 0
-            ? [
-                View(
-                  {
-                    style: {
-                      backgroundColor: "#ffffff",
-                      borderRadius: "12px",
-                      padding: "16px",
-                      marginBottom: "16px",
-                      border: "1px solid #e2e8f0",
-                    },
-                  },
-                  [
-                    Text(
-                      {
-                        style: {
-                          fontSize: "14px",
-                          fontWeight: "bold",
-                          color: "#0f172a",
-                          marginBottom: "8px",
-                        },
-                        text: `📋 رویدادهای شخصی ثبت‌شده (${personalEvents.length})`,
-                      },
-                      [`📋 رویدادهای شخصی ثبت‌شده (${personalEvents.length})`]
-                    ),
-                    ...eventElements,
-                  ]
-                ),
-              ]
-            : []),
+          ...(eventListSection ? [eventListSection] : []),
         ]
       );
     },
