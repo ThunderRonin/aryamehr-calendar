@@ -20,7 +20,9 @@ let currentCityIndex = 0;
 let currentMode: "gahs" | "islamic" = "gahs";
 
 let modeButtonWidget: any = null;
+let modeTextWidget: any = null;
 let cityButtonWidget: any = null;
+let cityTextWidget: any = null;
 let titleWidget: any = null;
 let displayWidget: any = null;
 
@@ -31,22 +33,23 @@ function updateDisplay() {
   const gm = now.getMonth() + 1;
   const gd = now.getDate();
 
-  // Mode Button Label
-  if (modeButtonWidget) {
+  // Mode Button Label (Text Overlay)
+  if (modeTextWidget) {
     const modeLabel =
       currentMode === "gahs"
         ? "حالت: گاه‌های زرتشتی (لمس: شرعی)"
         : "حالت: اوقات شرعی (لمس: گاه‌ها)";
-    modeButtonWidget.setProperty(prop.MORE, {
+    modeTextWidget.setProperty(prop.MORE, {
       text: reshape(modeLabel),
       color: currentMode === "gahs" ? COLORS.GOLD : COLORS.AMBER,
     });
   }
 
-  // City Button Label
-  if (cityButtonWidget) {
-    cityButtonWidget.setProperty(prop.MORE, {
+  // City Button Label (Text Overlay)
+  if (cityTextWidget) {
+    cityTextWidget.setProperty(prop.MORE, {
       text: reshape(`شهر: ${city.name} (لمس برای تغییر)`),
+      color: COLORS.AMBER,
     });
   }
 
@@ -117,30 +120,28 @@ function updateDisplay() {
 
 Page({
   build() {
-    // 1. Title (y = 20)
+    // 1. Title (y = 16, h = 36)
     titleWidget = createWidget(widget.TEXT, {
       x: px(30),
-      y: px(20),
+      y: px(16),
       w: px(406),
-      h: px(32),
+      h: px(36),
       color: COLORS.GOLD,
-      text_size: px(24),
+      text_size: px(28),
       align_h: align.CENTER_H,
       align_v: align.CENTER_V,
-      text: "",
+      text: reshape("گاه‌های پنج‌گانه زرتشتی"),
     });
 
-    // 2. Mode Toggle Button (y = 56, w = 320, h = 36)
+    // 2. Mode Toggle: Clickable Pill Background + Text Overlay (y = 56, w = 320, h = 38)
     modeButtonWidget = createWidget(widget.BUTTON, {
       x: px(73),
       y: px(56),
       w: px(320),
-      h: px(36),
-      radius: px(18),
+      h: px(38),
+      radius: px(19),
       normal_color: COLORS.CARD_BG,
       press_color: COLORS.DARK_GRAY,
-      text_size: px(16),
-      color: COLORS.GOLD,
       text: "",
       click_func: () => {
         currentMode = currentMode === "gahs" ? "islamic" : "gahs";
@@ -148,17 +149,27 @@ Page({
       },
     });
 
-    // 3. City Selector Button (y = 96, w = 280, h = 34)
+    modeTextWidget = createWidget(widget.TEXT, {
+      x: px(73),
+      y: px(56),
+      w: px(320),
+      h: px(38),
+      color: COLORS.GOLD,
+      text_size: px(19),
+      align_h: align.CENTER_H,
+      align_v: align.CENTER_V,
+      text: reshape("حالت: گاه‌های زرتشتی (لمس: شرعی)"),
+    });
+
+    // 3. City Selector: Clickable Pill Background + Text Overlay (y = 98, w = 280, h = 36)
     cityButtonWidget = createWidget(widget.BUTTON, {
       x: px(93),
-      y: px(96),
+      y: px(98),
       w: px(280),
-      h: px(34),
-      radius: px(17),
+      h: px(36),
+      radius: px(18),
       normal_color: COLORS.CARD_BG,
       press_color: COLORS.DARK_GRAY,
-      text_size: px(16),
-      color: COLORS.AMBER,
       text: "",
       click_func: () => {
         currentCityIndex = (currentCityIndex + 1) % MAJOR_CITIES.length;
@@ -166,29 +177,41 @@ Page({
       },
     });
 
-    // 4. Content Display Box (y = 136, h = 245)
+    cityTextWidget = createWidget(widget.TEXT, {
+      x: px(93),
+      y: px(98),
+      w: px(280),
+      h: px(36),
+      color: COLORS.AMBER,
+      text_size: px(19),
+      align_h: align.CENTER_H,
+      align_v: align.CENTER_V,
+      text: reshape(`شهر: ${MAJOR_CITIES[currentCityIndex].name} (لمس برای تغییر)`),
+    });
+
+    // 4. Content Display Box (y = 140, h = 248)
     displayWidget = createWidget(widget.TEXT, {
       x: px(35),
-      y: px(136),
+      y: px(140),
       w: px(396),
-      h: px(245),
+      h: px(248),
       color: COLORS.WHITE,
-      text_size: px(19),
+      text_size: px(22),
       align_h: align.CENTER_H,
       align_v: align.TOP,
       text: "",
     });
 
-    // 5. Back Button (y = 392, w = 150, h = 44)
+    // 5. Back Button (y = 394, w = 150, h = 44)
     createWidget(widget.BUTTON, {
       x: px(158),
-      y: px(392),
+      y: px(394),
       w: px(150),
       h: px(44),
       radius: px(22),
       normal_color: COLORS.CARD_BG,
       press_color: COLORS.DARK_GRAY,
-      text_size: px(19),
+      text_size: px(21),
       color: COLORS.GOLD,
       text: reshape("بازگشت"),
       click_func: () => {
