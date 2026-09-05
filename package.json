@@ -5,12 +5,12 @@
   "main": "app.js",
   "type": "module",
   "scripts": {
-    "build:ts": "tsc",
+    "build:ts": "node ./scripts/build.cjs",
     "watch:ts": "tsc --watch",
     "test": "tsx --test tests/*.test.ts",
-    "build": "tsc && node ./scripts/zeus.js build",
-    "dev": "tsc && node ./scripts/zeus.js dev",
-    "preview": "tsc && node ./scripts/zeus.js preview"
+    "build": "node ./scripts/build.cjs && node ./scripts/zeus.cjs build",
+    "dev": "node ./scripts/build.cjs && node ./scripts/zeus.cjs dev",
+    "preview": "node ./scripts/build.cjs && node ./scripts/zeus.cjs preview"
   },
   "keywords": [
     "zeppos",
@@ -29,4 +29,6 @@
     "typescript": "^5.7.3"
   }
 }
+
+
 
