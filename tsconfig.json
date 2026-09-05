@@ -8,7 +8,11 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "outDir": "./dist",
-    "types": ["node", "@zeppos/device-types"]
+    "types": ["node", "@zeppos/device-types"],
+    "baseUrl": ".",
+    "paths": {
+      "@zos/storage": ["./src/shims/storage.ts"]
+    }
   },
   "include": ["src/**/*"]
 }
