@@ -6,7 +6,6 @@
  */
 
 import { createWidget, widget, prop, align } from "@zos/ui";
-import { push } from "@zos/router";
 import { px } from "@zos/utils";
 import {
   toJalaali,
@@ -27,6 +26,7 @@ import { loadCachedEvents, CalendarEvent } from "../../core/calendar-sync";
 import { buildTodayEventsDisplay } from "../../ui/calendar-display";
 import { onCalendarSync } from "../../app";
 import { COLORS } from "../../ui/theme";
+import { createTodayNavButtons } from "./today-helpers";
 
 let officialWidget: any = null;
 let personalWidget: any = null;
@@ -202,56 +202,7 @@ Page({
     });
 
     // 7. Navigation Buttons:
-    // Left: Monthly Grid Button (y = 312, w = 180)
-    createWidget(widget.BUTTON, {
-      x: px(45),
-      y: px(312),
-      w: px(180),
-      h: px(52),
-      radius: px(26),
-      normal_color: COLORS.CARD_BG,
-      press_color: COLORS.DARK_GRAY,
-      text_size: px(21),
-      color: COLORS.GOLD,
-      text: reshape("تقویم ماهانه"),
-      click_func: () => {
-        push({ url: "pages/month/index.page" });
-      },
-    });
-
-    // Right: Date Converter Button (y = 312, w = 180)
-    createWidget(widget.BUTTON, {
-      x: px(241),
-      y: px(312),
-      w: px(180),
-      h: px(52),
-      radius: px(26),
-      normal_color: COLORS.CARD_BG,
-      press_color: COLORS.DARK_GRAY,
-      text_size: px(21),
-      color: COLORS.AMBER,
-      text: reshape("تبدیل تاریخ"),
-      click_func: () => {
-        push({ url: "pages/converter/index.page" });
-      },
-    });
-
-    // Bottom Center: Prayer & Gahs Times Button (y = 374, w = 240)
-    createWidget(widget.BUTTON, {
-      x: px(113),
-      y: px(374),
-      w: px(240),
-      h: px(48),
-      radius: px(24),
-      normal_color: COLORS.CARD_BG,
-      press_color: COLORS.DARK_GRAY,
-      text_size: px(20),
-      color: COLORS.GOLD,
-      text: reshape("اوقات و گاه‌ها"),
-      click_func: () => {
-        push({ url: "pages/prayer/index.page" });
-      },
-    });
+    createTodayNavButtons();
   },
   onDestroy() {
     if (syncUnsubscribe) {

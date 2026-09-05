@@ -50,6 +50,53 @@ function updateConversion() {
   }
 }
 
+function createAdjustRow(
+  y: number,
+  label: string,
+  onMinus: () => void,
+  onPlus: () => void
+) {
+  createWidget(widget.BUTTON, {
+    x: px(80),
+    y: px(y),
+    w: px(50),
+    h: px(40),
+    radius: px(20),
+    normal_color: COLORS.CARD_BG,
+    press_color: COLORS.DARK_GRAY,
+    text: "-",
+    text_size: px(24),
+    color: COLORS.AMBER,
+    click_func: onMinus,
+  });
+
+  createWidget(widget.TEXT, {
+    x: px(140),
+    y: px(y),
+    w: px(186),
+    h: px(40),
+    color: COLORS.WHITE,
+    text_size: px(25),
+    align_h: align.CENTER_H,
+    align_v: align.CENTER_V,
+    text: reshape(label),
+  });
+
+  createWidget(widget.BUTTON, {
+    x: px(336),
+    y: px(y),
+    w: px(50),
+    h: px(40),
+    radius: px(20),
+    normal_color: COLORS.CARD_BG,
+    press_color: COLORS.DARK_GRAY,
+    text: "+",
+    text_size: px(24),
+    color: COLORS.AMBER,
+    click_func: onPlus,
+  });
+}
+
 Page({
   onInit() {
     const now = new Date();
@@ -74,160 +121,43 @@ Page({
     });
 
     // 2. Adjust Controls (Year, Month, Day)
-    // Row 1: Day (- / +) (y = 68)
-    createWidget(widget.BUTTON, {
-      x: px(80),
-      y: px(68),
-      w: px(50),
-      h: px(40),
-      radius: px(20),
-      normal_color: COLORS.CARD_BG,
-      press_color: COLORS.DARK_GRAY,
-      text: "-",
-      text_size: px(24),
-      color: COLORS.AMBER,
-      click_func: () => {
-        if (jd > 1) {
-          jd--;
-        } else {
-          jd = getJalaaliMonthLength(jy, jm);
-        }
-        updateConversion();
-      },
+    createAdjustRow(68, "روز", () => {
+      if (jd > 1) {
+        jd--;
+      } else {
+        jd = getJalaaliMonthLength(jy, jm);
+      }
+      updateConversion();
+    }, () => {
+      const maxD = getJalaaliMonthLength(jy, jm);
+      if (jd < maxD) {
+        jd++;
+      } else {
+        jd = 1;
+      }
+      updateConversion();
     });
 
-    createWidget(widget.TEXT, {
-      x: px(140),
-      y: px(68),
-      w: px(186),
-      h: px(40),
-      color: COLORS.WHITE,
-      text_size: px(25),
-      align_h: align.CENTER_H,
-      align_v: align.CENTER_V,
-      text: reshape("روز"),
+    createAdjustRow(116, "ماه", () => {
+      if (jm > 1) jm--;
+      else jm = 12;
+      const maxD = getJalaaliMonthLength(jy, jm);
+      if (jd > maxD) jd = maxD;
+      updateConversion();
+    }, () => {
+      if (jm < 12) jm++;
+      else jm = 1;
+      const maxD = getJalaaliMonthLength(jy, jm);
+      if (jd > maxD) jd = maxD;
+      updateConversion();
     });
 
-    createWidget(widget.BUTTON, {
-      x: px(336),
-      y: px(68),
-      w: px(50),
-      h: px(40),
-      radius: px(20),
-      normal_color: COLORS.CARD_BG,
-      press_color: COLORS.DARK_GRAY,
-      text: "+",
-      text_size: px(24),
-      color: COLORS.AMBER,
-      click_func: () => {
-        const maxD = getJalaaliMonthLength(jy, jm);
-        if (jd < maxD) {
-          jd++;
-        } else {
-          jd = 1;
-        }
-        updateConversion();
-      },
-    });
-
-    // Row 2: Month (- / +) (y = 116)
-    createWidget(widget.BUTTON, {
-      x: px(80),
-      y: px(116),
-      w: px(50),
-      h: px(40),
-      radius: px(20),
-      normal_color: COLORS.CARD_BG,
-      press_color: COLORS.DARK_GRAY,
-      text: "-",
-      text_size: px(24),
-      color: COLORS.AMBER,
-      click_func: () => {
-        if (jm > 1) jm--;
-        else jm = 12;
-        const maxD = getJalaaliMonthLength(jy, jm);
-        if (jd > maxD) jd = maxD;
-        updateConversion();
-      },
-    });
-
-    createWidget(widget.TEXT, {
-      x: px(140),
-      y: px(116),
-      w: px(186),
-      h: px(40),
-      color: COLORS.WHITE,
-      text_size: px(25),
-      align_h: align.CENTER_H,
-      align_v: align.CENTER_V,
-      text: reshape("ماه"),
-    });
-
-    createWidget(widget.BUTTON, {
-      x: px(336),
-      y: px(116),
-      w: px(50),
-      h: px(40),
-      radius: px(20),
-      normal_color: COLORS.CARD_BG,
-      press_color: COLORS.DARK_GRAY,
-      text: "+",
-      text_size: px(24),
-      color: COLORS.AMBER,
-      click_func: () => {
-        if (jm < 12) jm++;
-        else jm = 1;
-        const maxD = getJalaaliMonthLength(jy, jm);
-        if (jd > maxD) jd = maxD;
-        updateConversion();
-      },
-    });
-
-    // Row 3: Year (- / +) (y = 164)
-    createWidget(widget.BUTTON, {
-      x: px(80),
-      y: px(164),
-      w: px(50),
-      h: px(40),
-      radius: px(20),
-      normal_color: COLORS.CARD_BG,
-      press_color: COLORS.DARK_GRAY,
-      text: "-",
-      text_size: px(24),
-      color: COLORS.AMBER,
-      click_func: () => {
-        jy--;
-        updateConversion();
-      },
-    });
-
-    createWidget(widget.TEXT, {
-      x: px(140),
-      y: px(164),
-      w: px(186),
-      h: px(40),
-      color: COLORS.WHITE,
-      text_size: px(25),
-      align_h: align.CENTER_H,
-      align_v: align.CENTER_V,
-      text: reshape("سال"),
-    });
-
-    createWidget(widget.BUTTON, {
-      x: px(336),
-      y: px(164),
-      w: px(50),
-      h: px(40),
-      radius: px(20),
-      normal_color: COLORS.CARD_BG,
-      press_color: COLORS.DARK_GRAY,
-      text: "+",
-      text_size: px(24),
-      color: COLORS.AMBER,
-      click_func: () => {
-        jy++;
-        updateConversion();
-      },
+    createAdjustRow(164, "سال", () => {
+      jy--;
+      updateConversion();
+    }, () => {
+      jy++;
+      updateConversion();
     });
 
     // 3. Conversion Results Display Area:
