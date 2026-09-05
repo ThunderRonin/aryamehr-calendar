@@ -7,10 +7,18 @@ import {
   formatGridDayText,
 } from "../src/ui/calendar-display";
 import { CalendarEvent } from "../src/core/calendar-sync";
-import { handleIncomingCalendarEvents } from "../src/app";
+import {
+  handleIncomingCalendarEvents,
+  onCalendarSync,
+} from "../src/app";
 import { loadCachedEvents, clearCachedEvents } from "../src/core/calendar-storage";
 import { toGregorian } from "../src/core/jalaali";
 import { reshape } from "../src/core/reshaper";
+import {
+  prevMonth,
+  nextMonth,
+  computeCellVisual,
+} from "../src/pages/month/month-helpers";
 
 test("formatPersonalEvent correctly formats all-day and timed events", () => {
   const allDayEvent: CalendarEvent = {
@@ -32,6 +40,9 @@ test("formatPersonalEvent correctly formats all-day and timed events", () => {
   };
   const formattedTimed = formatPersonalEvent(timedEvent);
   assert.match(formattedTimed, /^📅 ۱۰:۳۰ جلسه کاری$/);
+
+  // Null/empty event title
+  assert.equal(formatPersonalEvent({ id: "e0", title: "", startTimestamp: 0, isAllDay: false }), "");
 });
 
 test("buildTodayEventsDisplay handles days with and without personal events", () => {
@@ -100,7 +111,7 @@ test("formatGridDayText appends indicator bullet when personal events exist", ()
   assert.equal(formatGridDayText(5, true), "۵•");
 });
 
-test("handleIncomingCalendarEvents persists events from MessageBuilder payloads", () => {
+test("handleIncomingCalendarEvents persists events from MessageBuilder payloads and notifies listeners", () => {
   clearCachedEvents();
 
   const testEvents: CalendarEvent[] = [
@@ -112,9 +123,15 @@ test("handleIncomingCalendarEvents persists events from MessageBuilder payloads"
     },
   ];
 
+  let notifiedEvents: CalendarEvent[] | null = null;
+  const unsubscribe = onCalendarSync((events) => {
+    notifiedEvents = events;
+  });
+
   // Payload format 1: { events: [...] }
   const saved1 = handleIncomingCalendarEvents({ events: testEvents });
   assert.equal(saved1.length, 1);
+  assert.equal(notifiedEvents?.length, 1);
   const cached1 = loadCachedEvents();
   assert.equal(cached1.length, 1);
   assert.equal(cached1[0].id, "sync_1");
@@ -123,7 +140,37 @@ test("handleIncomingCalendarEvents persists events from MessageBuilder payloads"
   const saved2 = handleIncomingCalendarEvents({ result: testEvents });
   assert.equal(saved2.length, 1);
 
+  // Payload format 3: raw array [...] (Payload Resilience)
+  notifiedEvents = null;
+  const saved3 = handleIncomingCalendarEvents(testEvents);
+  assert.equal(saved3.length, 1);
+  assert.equal(notifiedEvents?.length, 1);
+
+  // Unsubscribe listener
+  unsubscribe();
+  notifiedEvents = null;
+  handleIncomingCalendarEvents(testEvents);
+  assert.equal(notifiedEvents, null);
+
   // Null/undefined/empty
   const savedEmpty = handleIncomingCalendarEvents(null);
   assert.equal(savedEmpty.length, 0);
+});
+
+test("month-helpers handles navigation and visual state computation", () => {
+  // Navigation
+  assert.deepEqual(prevMonth(1405, 1), { year: 1404, month: 12 });
+  assert.deepEqual(prevMonth(1405, 6), { year: 1405, month: 5 });
+  assert.deepEqual(nextMonth(1405, 12), { year: 1406, month: 1 });
+  assert.deepEqual(nextMonth(1405, 6), { year: 1405, month: 7 });
+
+  // Out of bounds cell
+  const outVisual = computeCellVisual(0, 3, 31, 1405, 6, { y: 1405, m: 6, d: 1 }, []);
+  assert.equal(outVisual, null);
+
+  // In bounds cell
+  const inVisual = computeCellVisual(3, 3, 31, 1405, 6, { y: 1405, m: 6, d: 1 }, []);
+  assert.ok(inVisual !== null);
+  assert.equal(inVisual?.day, 1);
+  assert.equal(inVisual?.text, "۱");
 });

@@ -10,15 +10,22 @@ import { px } from "@zos/utils";
 import {
   toJalaali,
   JALAALI_MONTH_NAMES,
-  PERSIAN_WEEKDAYS_SHORT,
   getJalaaliDayOfWeek,
   getJalaaliMonthLength,
 } from "../../core/jalaali";
-import { isOfficialHoliday } from "../../core/events";
 import { reshape } from "../../core/reshaper";
-import { loadCachedEvents, getEventsForJalaaliDate } from "../../core/calendar-sync";
-import { buildDayDetailText, formatGridDayText } from "../../ui/calendar-display";
+import { loadCachedEvents } from "../../core/calendar-sync";
+import { buildDayDetailText } from "../../ui/calendar-display";
 import { COLORS } from "../../ui/theme";
+import {
+  GRID_CONFIG,
+  prevMonth,
+  nextMonth,
+  computeCellVisual,
+  buildMonthHeader,
+  buildWeekdayHeaders,
+  buildDayGridButtons,
+} from "./month-helpers";
 
 let year = 1405;
 let month = 6;
@@ -28,12 +35,11 @@ let todayDay = 14;
 
 let titleWidget: any = null;
 let detailWidget: any = null;
-const dayButtonWidgets: any[] = [];
+let dayButtonWidgets: any[] = [];
 
 function showDayDetail(y: number, m: number, d: number) {
   const cachedEvents = loadCachedEvents();
   const detail = buildDayDetailText(y, m, d, cachedEvents);
-
   if (detailWidget) {
     detailWidget.setProperty(prop.MORE, {
       text: detail.text,
@@ -47,55 +53,34 @@ function updateMonthDisplay() {
   const monthLength = getJalaaliMonthLength(year, month);
   const firstDayOfWeek = getJalaaliDayOfWeek(year, month, 1);
   const cachedEvents = loadCachedEvents();
+  const today = { y: todayYear, m: todayMonth, d: todayDay };
 
   if (titleWidget) {
-    titleWidget.setProperty(prop.MORE, {
-      text: reshape(`${monthName} ${year}`),
-    });
+    titleWidget.setProperty(prop.MORE, { text: reshape(`${monthName} ${year}`) });
   }
 
-  let day = 1;
-  for (let cellIndex = 0; cellIndex < 42; cellIndex++) {
+  for (let cellIndex = 0; cellIndex < GRID_CONFIG.TOTAL_CELLS; cellIndex++) {
     const btn = dayButtonWidgets[cellIndex];
     if (!btn) continue;
 
-    if (cellIndex >= firstDayOfWeek && day <= monthLength) {
-      const currentDay = day;
-      const col = cellIndex % 7;
-      const isToday =
-        year === todayYear && month === todayMonth && currentDay === todayDay;
-      const isHoliday = isOfficialHoliday(year, month, currentDay);
-      const personalEvents = getEventsForJalaaliDate(year, month, currentDay, cachedEvents);
-      const hasPersonal = personalEvents.length > 0;
+    const visual = computeCellVisual(
+      cellIndex,
+      firstDayOfWeek,
+      monthLength,
+      year,
+      month,
+      today,
+      cachedEvents
+    );
 
-      let textColor = COLORS.WHITE;
-      if (isToday) {
-        textColor = COLORS.GOLD;
-      } else if (isHoliday || col === 6) {
-        textColor = COLORS.RED;
-      } else if (hasPersonal) {
-        textColor = COLORS.AMBER;
-      }
-
-      let bgColor = COLORS.BLACK;
-      if (isToday) {
-        bgColor = COLORS.CARD_BG;
-      } else if (hasPersonal) {
-        bgColor = COLORS.DARK_GRAY;
-      }
-
+    if (visual) {
       btn.setProperty(prop.MORE, {
-        text: formatGridDayText(currentDay, hasPersonal),
-        color: textColor,
-        normal_color: bgColor,
+        text: visual.text,
+        color: visual.textColor,
+        normal_color: visual.bgColor,
       });
-
-      day++;
     } else {
-      btn.setProperty(prop.MORE, {
-        text: "",
-        normal_color: COLORS.BLACK,
-      });
+      btn.setProperty(prop.MORE, { text: "", normal_color: COLORS.BLACK });
     }
   }
 
@@ -120,117 +105,36 @@ Page({
 
   build() {
     // 1. Month Header Bar (y = 22)
-    createWidget(widget.BUTTON, {
-      x: px(50),
-      y: px(22),
-      w: px(46),
-      h: px(42),
-      radius: px(21),
-      normal_color: COLORS.CARD_BG,
-      press_color: COLORS.DARK_GRAY,
-      text: "<",
-      text_size: px(24),
-      color: COLORS.GOLD,
-      click_func: () => {
-        if (month === 1) {
-          month = 12;
-          year -= 1;
-        } else {
-          month -= 1;
-        }
+    titleWidget = buildMonthHeader(
+      createWidget,
+      widget,
+      px,
+      () => {
+        const p = prevMonth(year, month);
+        year = p.year;
+        month = p.month;
         updateMonthDisplay();
       },
-    });
-
-    titleWidget = createWidget(widget.TEXT, {
-      x: px(100),
-      y: px(22),
-      w: px(266),
-      h: px(42),
-      color: COLORS.GOLD,
-      text_size: px(30),
-      align_h: align.CENTER_H,
-      align_v: align.CENTER_V,
-      text: reshape(`${JALAALI_MONTH_NAMES[month - 1]} ${year}`),
-    });
-
-    createWidget(widget.BUTTON, {
-      x: px(370),
-      y: px(22),
-      w: px(46),
-      h: px(42),
-      radius: px(21),
-      normal_color: COLORS.CARD_BG,
-      press_color: COLORS.DARK_GRAY,
-      text: ">",
-      text_size: px(24),
-      color: COLORS.GOLD,
-      click_func: () => {
-        if (month === 12) {
-          month = 1;
-          year += 1;
-        } else {
-          month += 1;
-        }
+      () => {
+        const n = nextMonth(year, month);
+        year = n.year;
+        month = n.month;
         updateMonthDisplay();
-      },
-    });
+      }
+    );
 
     // 2. Weekday Headers (y = 70)
-    const colWidth = 54;
-    const startX = 44;
-    const headerY = 70;
-
-    for (let c = 0; c < 7; c++) {
-      const colX = startX + c * colWidth;
-      const isFriday = c === 6;
-      createWidget(widget.TEXT, {
-        x: px(colX),
-        y: px(headerY),
-        w: px(colWidth),
-        h: px(28),
-        color: isFriday ? COLORS.RED : COLORS.AMBER,
-        text_size: px(20),
-        align_h: align.CENTER_H,
-        align_v: align.CENTER_V,
-        text: reshape(PERSIAN_WEEKDAYS_SHORT[c]),
-      });
-    }
+    buildWeekdayHeaders(createWidget, widget, px, reshape);
 
     // 3. Calendar Day Grid (42 cells: 6 rows x 7 columns)
-    const cellStartY = 100;
-    const cellHeight = 39;
-    dayButtonWidgets.length = 0;
-
-    for (let row = 0; row < 6; row++) {
-      for (let col = 0; col < 7; col++) {
-        const cellIndex = row * 7 + col;
-        const cellX = startX + col * colWidth;
-        const cellY = cellStartY + row * cellHeight;
-
-        const btn = createWidget(widget.BUTTON, {
-          x: px(cellX + 2),
-          y: px(cellY),
-          w: px(colWidth - 4),
-          h: px(cellHeight - 4),
-          radius: px(8),
-          normal_color: COLORS.BLACK,
-          press_color: COLORS.DARK_GRAY,
-          color: COLORS.WHITE,
-          text_size: px(22),
-          text: "",
-          click_func: () => {
-            const firstDayOfWeek = getJalaaliDayOfWeek(year, month, 1);
-            const clickedDay = cellIndex - firstDayOfWeek + 1;
-            const monthLength = getJalaaliMonthLength(year, month);
-            if (clickedDay >= 1 && clickedDay <= monthLength) {
-              showDayDetail(year, month, clickedDay);
-            }
-          },
-        });
-        dayButtonWidgets.push(btn);
+    dayButtonWidgets = buildDayGridButtons(createWidget, widget, px, (cellIndex) => {
+      const firstDayOfWeek = getJalaaliDayOfWeek(year, month, 1);
+      const clickedDay = cellIndex - firstDayOfWeek + 1;
+      const monthLength = getJalaaliMonthLength(year, month);
+      if (clickedDay >= 1 && clickedDay <= monthLength) {
+        showDayDetail(year, month, clickedDay);
       }
-    }
+    });
 
     // 4. Detail / Event Glance Bar at bottom (y = 338, h = 52)
     detailWidget = createWidget(widget.TEXT, {
@@ -257,12 +161,9 @@ Page({
       text_size: px(21),
       color: COLORS.GOLD,
       text: reshape("بازگشت"),
-      click_func: () => {
-        back();
-      },
+      click_func: () => back(),
     });
 
-    // Initialize the days grid for the current month
     updateMonthDisplay();
   },
 });

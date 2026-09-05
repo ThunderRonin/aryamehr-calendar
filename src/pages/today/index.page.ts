@@ -5,7 +5,7 @@
  * Gregorian/Hijri sync, active Gah, holidays, and navigation.
  */
 
-import { createWidget, widget, align } from "@zos/ui";
+import { createWidget, widget, prop, align } from "@zos/ui";
 import { push } from "@zos/router";
 import { px } from "@zos/utils";
 import {
@@ -23,9 +23,14 @@ import {
   getCurrentGah,
 } from "../../core/zoroastrian";
 import { reshape, toPersianDigits } from "../../core/reshaper";
-import { loadCachedEvents } from "../../core/calendar-sync";
+import { loadCachedEvents, CalendarEvent } from "../../core/calendar-sync";
 import { buildTodayEventsDisplay } from "../../ui/calendar-display";
+import { onCalendarSync } from "../../app";
 import { COLORS } from "../../ui/theme";
+
+let officialWidget: any = null;
+let personalWidget: any = null;
+let syncUnsubscribe: (() => void) | null = null;
 
 Page({
   build() {
@@ -124,49 +129,77 @@ Page({
     });
 
     // 6. Occasions & Personal Calendar Schedule (y = 246..306)
-    const cachedPersonalEvents = loadCachedEvents();
-    const displayInfo = buildTodayEventsDisplay(j.jy, j.jm, j.jd, cachedPersonalEvents);
+    officialWidget = createWidget(widget.TEXT, {
+      x: px(40),
+      y: px(246),
+      w: px(386),
+      h: px(26),
+      color: COLORS.WHITE,
+      text_size: px(18),
+      align_h: align.CENTER_H,
+      align_v: align.CENTER_V,
+      text: "",
+    });
 
-    if (displayInfo.hasPersonal) {
-      // 6a. Official Persian occasions badge
-      createWidget(widget.TEXT, {
-        x: px(40),
-        y: px(246),
-        w: px(386),
-        h: px(26),
-        color: displayInfo.officialColor,
-        text_size: px(18),
-        align_h: align.CENTER_H,
-        align_v: align.CENTER_V,
-        text: reshape(displayInfo.officialText),
-      });
+    personalWidget = createWidget(widget.TEXT, {
+      x: px(40),
+      y: px(274),
+      w: px(386),
+      h: px(32),
+      color: COLORS.GOLD,
+      text_size: px(20),
+      align_h: align.CENTER_H,
+      align_v: align.CENTER_V,
+      text: "",
+    });
 
-      // 6b. Personal Events badge with gold/amber styling
-      createWidget(widget.TEXT, {
-        x: px(40),
-        y: px(274),
-        w: px(386),
-        h: px(32),
-        color: displayInfo.personalColor,
-        text_size: px(20),
-        align_h: align.CENTER_H,
-        align_v: align.CENTER_V,
-        text: reshape(displayInfo.personalText),
-      });
-    } else {
-      // No personal events: display official national occasions as before
-      createWidget(widget.TEXT, {
-        x: px(45),
-        y: px(248),
-        w: px(376),
-        h: px(58),
-        color: displayInfo.officialColor,
-        text_size: px(22),
-        align_h: align.CENTER_H,
-        align_v: align.CENTER_V,
-        text: reshape(displayInfo.singleText),
-      });
+    function updateTodayEvents(cachedEvents: CalendarEvent[]) {
+      const displayInfo = buildTodayEventsDisplay(j.jy, j.jm, j.jd, cachedEvents);
+      if (displayInfo.hasPersonal) {
+        if (officialWidget) {
+          officialWidget.setProperty(prop.MORE, {
+            y: px(246),
+            h: px(26),
+            text_size: px(18),
+            color: displayInfo.officialColor,
+            text: reshape(displayInfo.officialText),
+          });
+        }
+        if (personalWidget) {
+          personalWidget.setProperty(prop.MORE, {
+            y: px(274),
+            h: px(32),
+            text_size: px(20),
+            color: displayInfo.personalColor,
+            text: reshape(displayInfo.personalText),
+          });
+        }
+      } else {
+        if (officialWidget) {
+          officialWidget.setProperty(prop.MORE, {
+            y: px(248),
+            h: px(58),
+            text_size: px(22),
+            color: displayInfo.officialColor,
+            text: reshape(displayInfo.singleText),
+          });
+        }
+        if (personalWidget) {
+          personalWidget.setProperty(prop.MORE, {
+            text: "",
+          });
+        }
+      }
     }
+
+    // Initial render from local cached events
+    updateTodayEvents(loadCachedEvents());
+
+    // Register live listener for incoming BLE sync updates
+    if (syncUnsubscribe) syncUnsubscribe();
+    syncUnsubscribe = onCalendarSync((updatedEvents) => {
+      updateTodayEvents(updatedEvents);
+    });
 
     // 7. Navigation Buttons:
     // Left: Monthly Grid Button (y = 312, w = 180)
@@ -219,5 +252,11 @@ Page({
         push({ url: "pages/prayer/index.page" });
       },
     });
+  },
+  onDestroy() {
+    if (syncUnsubscribe) {
+      syncUnsubscribe();
+      syncUnsubscribe = null;
+    }
   },
 });

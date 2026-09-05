@@ -14,7 +14,8 @@
     "paths": {
       "@zos/storage": ["./src/shims/storage.ts"],
       "@zos/utils": ["./src/shims/utils.ts"],
-      "@zos/ble": ["./src/shims/ble.ts"]
+      "@zos/ble": ["./src/shims/ble.ts"],
+      "@zos/ui": ["./src/shims/ui.ts"]
     }
   },
   "include": ["src/**/*"]

@@ -73,6 +73,7 @@ export function buildTodayEventsDisplay(
   const personalFormatted = personalEvents
     .slice(0, 2)
     .map(formatPersonalEvent)
+    .filter(Boolean)
     .join(" • ");
 
   return {
@@ -112,6 +113,7 @@ export function buildDayDetailText(
     personalStr = personalEvents
       .slice(0, 2)
       .map(formatPersonalEvent)
+      .filter(Boolean)
       .join(" • ");
   }
 
