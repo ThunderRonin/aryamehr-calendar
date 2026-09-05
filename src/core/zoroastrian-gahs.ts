@@ -203,3 +203,4 @@ export function getCurrentGah(
 
   return gahs.ushahin;
 }
+
