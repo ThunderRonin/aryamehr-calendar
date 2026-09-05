@@ -46,61 +46,61 @@ Page({
     const gahs = calculateZoroastrianGahs(gy, gm, gd, 35.6892, 51.389, 3.5);
     const activeGah = getCurrentGah(gahs, now.getHours(), now.getMinutes());
 
-    // 1. Weekday Header (Top arc area: y = 25)
+    // 1. Weekday Header (Top arc area: y = 22)
     createWidget(widget.TEXT, {
       x: px(40),
-      y: px(25),
+      y: px(22),
       w: px(386),
-      h: px(34),
+      h: px(38),
       color: isHoliday ? COLORS.RED : COLORS.AMBER,
-      text_size: px(26),
+      text_size: px(30),
       align_h: align.CENTER_H,
       align_v: align.CENTER_V,
       text: reshape(weekdayName),
     });
 
-    // 2. Large Persian Day Number (Center: y = 60, h = 86)
+    // 2. Large Persian Day Number (Center: y = 60, h = 92)
     createWidget(widget.TEXT, {
       x: px(40),
       y: px(60),
       w: px(386),
-      h: px(86),
+      h: px(92),
       color: isHoliday ? COLORS.RED : COLORS.GOLD,
-      text_size: px(80),
+      text_size: px(88),
       align_h: align.CENTER_H,
       align_v: align.CENTER_V,
       text: toPersianDigits(j.jd),
     });
 
-    // 3. Month and Year (y = 150, h = 34)
+    // 3. Month and Year (y = 152, h = 38)
     const monthYearText = `${monthName} ${toPersianDigits(j.jy)}`;
     createWidget(widget.TEXT, {
       x: px(40),
-      y: px(150),
+      y: px(152),
       w: px(386),
-      h: px(34),
+      h: px(38),
       color: COLORS.GOLD,
-      text_size: px(28),
+      text_size: px(32),
       align_h: align.CENTER_H,
       align_v: align.CENTER_V,
       text: reshape(monthYearText),
     });
 
-    // 4. Zoroastrian Day Name & Imperial Year (y = 186, h = 26)
+    // 4. Zoroastrian Day Name & Imperial Year (y = 190, h = 28)
     const zoroastrianLine = `${zDay.title}  •  ${toPersianDigits(shahanshahiYear)} شاهنشاهی`;
     createWidget(widget.TEXT, {
       x: px(30),
-      y: px(186),
+      y: px(190),
       w: px(406),
-      h: px(26),
+      h: px(28),
       color: COLORS.AMBER,
-      text_size: px(16),
+      text_size: px(19),
       align_h: align.CENTER_H,
       align_v: align.CENTER_V,
       text: reshape(zoroastrianLine),
     });
 
-    // 5. Sub-calendar Strip: Gregorian + Hijri + Active Gah (y = 214, h = 26)
+    // 5. Sub-calendar Strip: Gregorian + Hijri + Active Gah (y = 218, h = 28)
     const hijriMonthName = HIJRI_MONTH_NAMES[h.hm - 1];
     const hijriText = `${toPersianDigits(h.hd)} ${hijriMonthName}`;
     const gregorianMonths = [
@@ -112,17 +112,17 @@ Page({
 
     createWidget(widget.TEXT, {
       x: px(25),
-      y: px(214),
+      y: px(218),
       w: px(416),
-      h: px(26),
+      h: px(28),
       color: COLORS.MUTED,
-      text_size: px(15),
+      text_size: px(18),
       align_h: align.CENTER_H,
       align_v: align.CENTER_V,
       text: reshape(subDateText),
     });
 
-    // 6. Occasions & Holiday Badge (y = 246, h = 56)
+    // 6. Occasions & Holiday Badge (y = 248, h = 58)
     let eventDisplay = "بدون رویداد رسمی";
     if (events.length > 0) {
       eventDisplay = events.map((e) => e.title).join("، ");
@@ -132,27 +132,27 @@ Page({
 
     createWidget(widget.TEXT, {
       x: px(45),
-      y: px(246),
+      y: px(248),
       w: px(376),
-      h: px(56),
+      h: px(58),
       color: isHoliday ? COLORS.RED : COLORS.WHITE,
-      text_size: px(19),
+      text_size: px(22),
       align_h: align.CENTER_H,
       align_v: align.CENTER_V,
       text: reshape(eventDisplay),
     });
 
     // 7. Navigation Buttons:
-    // Left: Monthly Grid Button (y = 314, w = 180)
+    // Left: Monthly Grid Button (y = 312, w = 180)
     createWidget(widget.BUTTON, {
       x: px(45),
-      y: px(314),
+      y: px(312),
       w: px(180),
-      h: px(50),
-      radius: px(25),
+      h: px(52),
+      radius: px(26),
       normal_color: COLORS.CARD_BG,
       press_color: COLORS.DARK_GRAY,
-      text_size: px(19),
+      text_size: px(21),
       color: COLORS.GOLD,
       text: reshape("تقویم ماهانه"),
       click_func: () => {
@@ -160,16 +160,16 @@ Page({
       },
     });
 
-    // Right: Date Converter Button (y = 314, w = 180)
+    // Right: Date Converter Button (y = 312, w = 180)
     createWidget(widget.BUTTON, {
       x: px(241),
-      y: px(314),
+      y: px(312),
       w: px(180),
-      h: px(50),
-      radius: px(25),
+      h: px(52),
+      radius: px(26),
       normal_color: COLORS.CARD_BG,
       press_color: COLORS.DARK_GRAY,
-      text_size: px(19),
+      text_size: px(21),
       color: COLORS.AMBER,
       text: reshape("تبدیل تاریخ"),
       click_func: () => {
@@ -177,16 +177,16 @@ Page({
       },
     });
 
-    // Bottom Center: Prayer & Gahs Times Button (y = 378, w = 240)
+    // Bottom Center: Prayer & Gahs Times Button (y = 374, w = 240)
     createWidget(widget.BUTTON, {
       x: px(113),
-      y: px(378),
+      y: px(374),
       w: px(240),
-      h: px(46),
-      radius: px(23),
+      h: px(48),
+      radius: px(24),
       normal_color: COLORS.CARD_BG,
       press_color: COLORS.DARK_GRAY,
-      text_size: px(17),
+      text_size: px(20),
       color: COLORS.GOLD,
       text: reshape("اوقات و گاه‌ها"),
       click_func: () => {

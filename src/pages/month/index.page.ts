@@ -110,17 +110,17 @@ Page({
   },
 
   build() {
-    // 1. Month Header Bar (y = 25)
+    // 1. Month Header Bar (y = 22)
     createWidget(widget.BUTTON, {
       x: px(50),
-      y: px(25),
-      w: px(45),
-      h: px(40),
-      radius: px(20),
+      y: px(22),
+      w: px(46),
+      h: px(42),
+      radius: px(21),
       normal_color: COLORS.CARD_BG,
       press_color: COLORS.DARK_GRAY,
       text: "<",
-      text_size: px(22),
+      text_size: px(24),
       color: COLORS.GOLD,
       click_func: () => {
         if (month === 1) {
@@ -135,26 +135,26 @@ Page({
 
     titleWidget = createWidget(widget.TEXT, {
       x: px(100),
-      y: px(25),
+      y: px(22),
       w: px(266),
-      h: px(40),
+      h: px(42),
       color: COLORS.GOLD,
-      text_size: px(26),
+      text_size: px(30),
       align_h: align.CENTER_H,
       align_v: align.CENTER_V,
       text: reshape(`${JALAALI_MONTH_NAMES[month - 1]} ${year}`),
     });
 
     createWidget(widget.BUTTON, {
-      x: px(371),
-      y: px(25),
-      w: px(45),
-      h: px(40),
-      radius: px(20),
+      x: px(370),
+      y: px(22),
+      w: px(46),
+      h: px(42),
+      radius: px(21),
       normal_color: COLORS.CARD_BG,
       press_color: COLORS.DARK_GRAY,
       text: ">",
-      text_size: px(22),
+      text_size: px(24),
       color: COLORS.GOLD,
       click_func: () => {
         if (month === 12) {
@@ -167,10 +167,10 @@ Page({
       },
     });
 
-    // 2. Weekday Headers (y = 75)
+    // 2. Weekday Headers (y = 70)
     const colWidth = 54;
     const startX = 44;
-    const headerY = 75;
+    const headerY = 70;
 
     for (let c = 0; c < 7; c++) {
       const colX = startX + c * colWidth;
@@ -179,9 +179,9 @@ Page({
         x: px(colX),
         y: px(headerY),
         w: px(colWidth),
-        h: px(26),
+        h: px(28),
         color: isFriday ? COLORS.RED : COLORS.AMBER,
-        text_size: px(18),
+        text_size: px(20),
         align_h: align.CENTER_H,
         align_v: align.CENTER_V,
         text: reshape(PERSIAN_WEEKDAYS_SHORT[c]),
@@ -189,8 +189,8 @@ Page({
     }
 
     // 3. Calendar Day Grid (42 cells: 6 rows x 7 columns)
-    const cellStartY = 105;
-    const cellHeight = 38;
+    const cellStartY = 100;
+    const cellHeight = 39;
     dayButtonWidgets.length = 0;
 
     for (let row = 0; row < 6; row++) {
@@ -208,7 +208,7 @@ Page({
           normal_color: COLORS.BLACK,
           press_color: COLORS.DARK_GRAY,
           color: COLORS.WHITE,
-          text_size: px(20),
+          text_size: px(22),
           text: "",
           click_func: () => {
             // Find which day this cell corresponds to
@@ -224,29 +224,29 @@ Page({
       }
     }
 
-    // 4. Detail / Event Glance Bar at bottom (y = 345, h = 42)
+    // 4. Detail / Event Glance Bar at bottom (y = 340, h = 46)
     detailWidget = createWidget(widget.TEXT, {
-      x: px(45),
-      y: px(345),
-      w: px(376),
-      h: px(42),
+      x: px(40),
+      y: px(340),
+      w: px(386),
+      h: px(46),
       color: COLORS.MUTED,
-      text_size: px(18),
+      text_size: px(21),
       align_h: align.CENTER_H,
       align_v: align.CENTER_V,
       text: reshape("یک روز را برای نمایش رویداد لمس کنید"),
     });
 
-    // 5. Back Button (y = 398, w = 150)
+    // 5. Back Button (y = 394, w = 150)
     createWidget(widget.BUTTON, {
       x: px(158),
-      y: px(398),
+      y: px(394),
       w: px(150),
-      h: px(44),
-      radius: px(22),
+      h: px(48),
+      radius: px(24),
       normal_color: COLORS.CARD_BG,
       press_color: COLORS.DARK_GRAY,
-      text_size: px(18),
+      text_size: px(21),
       color: COLORS.GOLD,
       text: reshape("بازگشت"),
       click_func: () => {

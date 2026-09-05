@@ -60,24 +60,24 @@ Page({
   },
 
   build() {
-    // 1. Page Title (y = 25)
+    // 1. Page Title (y = 22)
     createWidget(widget.TEXT, {
       x: px(40),
-      y: px(25),
+      y: px(22),
       w: px(386),
-      h: px(36),
+      h: px(40),
       color: COLORS.GOLD,
-      text_size: px(26),
+      text_size: px(30),
       align_h: align.CENTER_H,
       align_v: align.CENTER_V,
       text: reshape("تبدیل تاریخ خورشیدی"),
     });
 
     // 2. Adjust Controls (Year, Month, Day)
-    // Row 1: Day (- / +) (y = 70)
+    // Row 1: Day (- / +) (y = 68)
     createWidget(widget.BUTTON, {
       x: px(80),
-      y: px(70),
+      y: px(68),
       w: px(50),
       h: px(40),
       radius: px(20),
@@ -98,11 +98,11 @@ Page({
 
     createWidget(widget.TEXT, {
       x: px(140),
-      y: px(70),
+      y: px(68),
       w: px(186),
       h: px(40),
       color: COLORS.WHITE,
-      text_size: px(22),
+      text_size: px(25),
       align_h: align.CENTER_H,
       align_v: align.CENTER_V,
       text: reshape("روز"),
@@ -110,7 +110,7 @@ Page({
 
     createWidget(widget.BUTTON, {
       x: px(336),
-      y: px(70),
+      y: px(68),
       w: px(50),
       h: px(40),
       radius: px(20),
@@ -130,10 +130,10 @@ Page({
       },
     });
 
-    // Row 2: Month (- / +) (y = 120)
+    // Row 2: Month (- / +) (y = 116)
     createWidget(widget.BUTTON, {
       x: px(80),
-      y: px(120),
+      y: px(116),
       w: px(50),
       h: px(40),
       radius: px(20),
@@ -153,11 +153,11 @@ Page({
 
     createWidget(widget.TEXT, {
       x: px(140),
-      y: px(120),
+      y: px(116),
       w: px(186),
       h: px(40),
       color: COLORS.WHITE,
-      text_size: px(22),
+      text_size: px(25),
       align_h: align.CENTER_H,
       align_v: align.CENTER_V,
       text: reshape("ماه"),
@@ -165,7 +165,7 @@ Page({
 
     createWidget(widget.BUTTON, {
       x: px(336),
-      y: px(120),
+      y: px(116),
       w: px(50),
       h: px(40),
       radius: px(20),
@@ -183,10 +183,10 @@ Page({
       },
     });
 
-    // Row 3: Year (- / +) (y = 170)
+    // Row 3: Year (- / +) (y = 164)
     createWidget(widget.BUTTON, {
       x: px(80),
-      y: px(170),
+      y: px(164),
       w: px(50),
       h: px(40),
       radius: px(20),
@@ -203,11 +203,11 @@ Page({
 
     createWidget(widget.TEXT, {
       x: px(140),
-      y: px(170),
+      y: px(164),
       w: px(186),
       h: px(40),
       color: COLORS.WHITE,
-      text_size: px(22),
+      text_size: px(25),
       align_h: align.CENTER_H,
       align_v: align.CENTER_V,
       text: reshape("سال"),
@@ -215,7 +215,7 @@ Page({
 
     createWidget(widget.BUTTON, {
       x: px(336),
-      y: px(170),
+      y: px(164),
       w: px(50),
       h: px(40),
       radius: px(20),
@@ -231,55 +231,55 @@ Page({
     });
 
     // 3. Conversion Results Display Area:
-    // Shamsi (y = 225)
+    // Shamsi (y = 216)
     shamsiDisplayWidget = createWidget(widget.TEXT, {
       x: px(30),
-      y: px(225),
+      y: px(216),
       w: px(406),
-      h: px(40),
+      h: px(42),
       color: COLORS.GOLD,
-      text_size: px(26),
+      text_size: px(30),
       align_h: align.CENTER_H,
       align_v: align.CENTER_V,
       text: "",
     });
 
-    // Miladi (y = 270)
+    // Miladi (y = 262)
     miladiDisplayWidget = createWidget(widget.TEXT, {
       x: px(30),
-      y: px(270),
+      y: px(262),
       w: px(406),
-      h: px(34),
+      h: px(36),
       color: COLORS.WHITE,
-      text_size: px(22),
+      text_size: px(25),
       align_h: align.CENTER_H,
       align_v: align.CENTER_V,
       text: "",
     });
 
-    // Hijri (y = 310)
+    // Hijri (y = 302)
     hijriDisplayWidget = createWidget(widget.TEXT, {
       x: px(30),
-      y: px(310),
+      y: px(302),
       w: px(406),
-      h: px(34),
+      h: px(36),
       color: COLORS.MUTED,
-      text_size: px(20),
+      text_size: px(23),
       align_h: align.CENTER_H,
       align_v: align.CENTER_V,
       text: "",
     });
 
-    // 4. Back Button (y = 390)
+    // 4. Back Button (y = 388)
     createWidget(widget.BUTTON, {
       x: px(158),
-      y: px(390),
+      y: px(388),
       w: px(150),
-      h: px(46),
-      radius: px(23),
+      h: px(48),
+      radius: px(24),
       normal_color: COLORS.CARD_BG,
       press_color: COLORS.DARK_GRAY,
-      text_size: px(20),
+      text_size: px(22),
       color: COLORS.GOLD,
       text: reshape("بازگشت"),
       click_func: () => {

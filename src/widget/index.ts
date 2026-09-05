@@ -57,70 +57,70 @@ AppWidget({
       },
     });
 
-    // 1. App Emblem Icon (Center top: x = 205, y = 40, 56x56)
+    // 1. App Emblem Icon (Center top: x = 205, y = 36, 56x56)
     createWidget(widget.IMG, {
       x: px(205),
-      y: px(40),
+      y: px(36),
       w: px(56),
       h: px(56),
       src: "assets/icon.png",
     });
 
-    // 2. App Name Header (y = 104)
+    // 2. App Name Header (y = 98)
     createWidget(widget.TEXT, {
       x: px(40),
-      y: px(104),
+      y: px(98),
       w: px(386),
-      h: px(26),
+      h: px(30),
       color: COLORS.GOLD,
-      text_size: px(20),
+      text_size: px(22),
       align_h: align.CENTER_H,
       align_v: align.CENTER_V,
       text: reshape("تقویم آریامهر"),
     });
 
-    // 3. Persian Day Number (Center: y = 134, h = 78)
+    // 3. Persian Day Number (Center: y = 130, h = 84)
     createWidget(widget.TEXT, {
       x: px(40),
-      y: px(134),
+      y: px(130),
       w: px(386),
-      h: px(78),
+      h: px(84),
       color: isHoliday ? COLORS.RED : COLORS.GOLD,
-      text_size: px(72),
+      text_size: px(80),
       align_h: align.CENTER_H,
       align_v: align.CENTER_V,
       text: toPersianDigits(j.jd),
     });
 
-    // 4. Weekday and Month (y = 218, h = 30)
+    // 4. Weekday and Month (y = 216, h = 34)
     const dateDesc = `${weekdayName}، ${monthName} ${toPersianDigits(j.jy)}`;
     createWidget(widget.TEXT, {
       x: px(40),
-      y: px(218),
+      y: px(216),
       w: px(386),
-      h: px(30),
+      h: px(34),
       color: isHoliday ? COLORS.RED : COLORS.AMBER,
-      text_size: px(22),
+      text_size: px(25),
       align_h: align.CENTER_H,
       align_v: align.CENTER_V,
       text: reshape(dateDesc),
     });
 
-    // 5. Zoroastrian Day Name & Active Gah (y = 254, h = 26)
+    // 5. Zoroastrian Day Name & Active Gah (y = 254, h = 28)
     const zoroastrianWidgetText = `${zDay.title}  •  ${activeGah.name}`;
     createWidget(widget.TEXT, {
       x: px(30),
       y: px(254),
       w: px(406),
-      h: px(26),
+      h: px(28),
       color: COLORS.GOLD,
-      text_size: px(17),
+      text_size: px(19),
       align_h: align.CENTER_H,
       align_v: align.CENTER_V,
       text: reshape(zoroastrianWidgetText),
     });
 
-    // 6. Today's Event or Holiday Glance (y = 286, h = 30)
+    // 6. Today's Event or Holiday Glance (y = 284, h = 32)
     let eventSummary = "بدون رویداد رسمی";
     if (events.length > 0) {
       eventSummary = events[0].title;
@@ -130,11 +130,11 @@ AppWidget({
 
     createWidget(widget.TEXT, {
       x: px(40),
-      y: px(286),
+      y: px(284),
       w: px(386),
-      h: px(30),
+      h: px(32),
       color: isHoliday ? COLORS.RED : COLORS.MUTED,
-      text_size: px(17),
+      text_size: px(19),
       align_h: align.CENTER_H,
       align_v: align.CENTER_V,
       text: reshape(eventSummary),
@@ -145,9 +145,9 @@ AppWidget({
       x: px(40),
       y: px(370),
       w: px(386),
-      h: px(24),
+      h: px(28),
       color: COLORS.MUTED,
-      text_size: px(15),
+      text_size: px(18),
       align_h: align.CENTER_H,
       align_v: align.CENTER_V,
       text: reshape("لمس برای باز کردن تقویم"),
