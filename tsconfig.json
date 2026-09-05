@@ -12,7 +12,9 @@
     "types": ["node", "@zeppos/device-types"],
     "baseUrl": ".",
     "paths": {
-      "@zos/storage": ["./src/shims/storage.ts"]
+      "@zos/storage": ["./src/shims/storage.ts"],
+      "@zos/utils": ["./src/shims/utils.ts"],
+      "@zos/ble": ["./src/shims/ble.ts"]
     }
   },
   "include": ["src/**/*"]

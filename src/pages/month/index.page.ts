@@ -1,6 +1,7 @@
 /**
  * AryaMehr Calendar - Monthly Grid View (تقویم ماهانه)
  * 7-column calendar grid for Amazfit GTR 4 (466x466)
+ * Supports Persian dates, holiday highlights, and personal event markers.
  */
 
 import { createWidget, widget, prop, align } from "@zos/ui";
@@ -13,8 +14,10 @@ import {
   getJalaaliDayOfWeek,
   getJalaaliMonthLength,
 } from "../../core/jalaali";
-import { isOfficialHoliday, getEventsForDate } from "../../core/events";
-import { reshape, toPersianDigits } from "../../core/reshaper";
+import { isOfficialHoliday } from "../../core/events";
+import { reshape } from "../../core/reshaper";
+import { loadCachedEvents, getEventsForJalaaliDate } from "../../core/calendar-sync";
+import { buildDayDetailText, formatGridDayText } from "../../ui/calendar-display";
 import { COLORS } from "../../ui/theme";
 
 let year = 1405;
@@ -28,19 +31,13 @@ let detailWidget: any = null;
 const dayButtonWidgets: any[] = [];
 
 function showDayDetail(y: number, m: number, d: number) {
-  const events = getEventsForDate(y, m, d);
-  const isHoliday = isOfficialHoliday(y, m, d);
-  let msg = `${d} ${JALAALI_MONTH_NAMES[m - 1]}: بدون رویداد`;
-  if (events.length > 0) {
-    msg = `${d} ${JALAALI_MONTH_NAMES[m - 1]}: ${events.map((e) => e.title).join("، ")}`;
-  } else if (isHoliday) {
-    msg = `${d} ${JALAALI_MONTH_NAMES[m - 1]}: تعطیل رسمی`;
-  }
+  const cachedEvents = loadCachedEvents();
+  const detail = buildDayDetailText(y, m, d, cachedEvents);
 
   if (detailWidget) {
     detailWidget.setProperty(prop.MORE, {
-      text: reshape(msg),
-      color: isHoliday ? COLORS.RED : COLORS.GOLD,
+      text: detail.text,
+      color: detail.color,
     });
   }
 }
@@ -49,6 +46,7 @@ function updateMonthDisplay() {
   const monthName = JALAALI_MONTH_NAMES[month - 1];
   const monthLength = getJalaaliMonthLength(year, month);
   const firstDayOfWeek = getJalaaliDayOfWeek(year, month, 1);
+  const cachedEvents = loadCachedEvents();
 
   if (titleWidget) {
     titleWidget.setProperty(prop.MORE, {
@@ -67,18 +65,29 @@ function updateMonthDisplay() {
       const isToday =
         year === todayYear && month === todayMonth && currentDay === todayDay;
       const isHoliday = isOfficialHoliday(year, month, currentDay);
+      const personalEvents = getEventsForJalaaliDate(year, month, currentDay, cachedEvents);
+      const hasPersonal = personalEvents.length > 0;
 
       let textColor = COLORS.WHITE;
       if (isToday) {
         textColor = COLORS.GOLD;
       } else if (isHoliday || col === 6) {
         textColor = COLORS.RED;
+      } else if (hasPersonal) {
+        textColor = COLORS.AMBER;
+      }
+
+      let bgColor = COLORS.BLACK;
+      if (isToday) {
+        bgColor = COLORS.CARD_BG;
+      } else if (hasPersonal) {
+        bgColor = COLORS.DARK_GRAY;
       }
 
       btn.setProperty(prop.MORE, {
-        text: toPersianDigits(currentDay),
+        text: formatGridDayText(currentDay, hasPersonal),
         color: textColor,
-        normal_color: isToday ? COLORS.CARD_BG : COLORS.BLACK,
+        normal_color: bgColor,
       });
 
       day++;
@@ -211,7 +220,6 @@ Page({
           text_size: px(22),
           text: "",
           click_func: () => {
-            // Find which day this cell corresponds to
             const firstDayOfWeek = getJalaaliDayOfWeek(year, month, 1);
             const clickedDay = cellIndex - firstDayOfWeek + 1;
             const monthLength = getJalaaliMonthLength(year, month);
@@ -224,14 +232,14 @@ Page({
       }
     }
 
-    // 4. Detail / Event Glance Bar at bottom (y = 340, h = 46)
+    // 4. Detail / Event Glance Bar at bottom (y = 338, h = 52)
     detailWidget = createWidget(widget.TEXT, {
-      x: px(40),
-      y: px(340),
-      w: px(386),
-      h: px(46),
+      x: px(35),
+      y: px(338),
+      w: px(396),
+      h: px(52),
       color: COLORS.MUTED,
-      text_size: px(21),
+      text_size: px(19),
       align_h: align.CENTER_H,
       align_v: align.CENTER_V,
       text: reshape("یک روز را برای نمایش رویداد لمس کنید"),

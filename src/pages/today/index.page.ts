@@ -15,7 +15,7 @@ import {
   getJalaaliDayOfWeek,
 } from "../../core/jalaali";
 import { toHijri, HIJRI_MONTH_NAMES } from "../../core/hijri";
-import { getEventsForDate, isOfficialHoliday } from "../../core/events";
+import { isOfficialHoliday } from "../../core/events";
 import {
   getZoroastrianDay,
   getShahanshahiYear,
@@ -23,6 +23,8 @@ import {
   getCurrentGah,
 } from "../../core/zoroastrian";
 import { reshape, toPersianDigits } from "../../core/reshaper";
+import { loadCachedEvents } from "../../core/calendar-sync";
+import { buildTodayEventsDisplay } from "../../ui/calendar-display";
 import { COLORS } from "../../ui/theme";
 
 Page({
@@ -38,7 +40,6 @@ Page({
     const weekdayName = PERSIAN_WEEKDAYS[dayOfWeek];
     const monthName = JALAALI_MONTH_NAMES[j.jm - 1];
     const isHoliday = isOfficialHoliday(j.jy, j.jm, j.jd);
-    const events = getEventsForDate(j.jy, j.jm, j.jd);
 
     // Zoroastrian day, Imperial year, and active Gah
     const zDay = getZoroastrianDay(j.jd, j.jm);
@@ -122,25 +123,50 @@ Page({
       text: reshape(subDateText),
     });
 
-    // 6. Occasions & Holiday Badge (y = 248, h = 58)
-    let eventDisplay = "بدون رویداد رسمی";
-    if (events.length > 0) {
-      eventDisplay = events.map((e) => e.title).join("، ");
-    } else if (isHoliday) {
-      eventDisplay = "تعطیل رسمی";
-    }
+    // 6. Occasions & Personal Calendar Schedule (y = 246..306)
+    const cachedPersonalEvents = loadCachedEvents();
+    const displayInfo = buildTodayEventsDisplay(j.jy, j.jm, j.jd, cachedPersonalEvents);
 
-    createWidget(widget.TEXT, {
-      x: px(45),
-      y: px(248),
-      w: px(376),
-      h: px(58),
-      color: isHoliday ? COLORS.RED : COLORS.WHITE,
-      text_size: px(22),
-      align_h: align.CENTER_H,
-      align_v: align.CENTER_V,
-      text: reshape(eventDisplay),
-    });
+    if (displayInfo.hasPersonal) {
+      // 6a. Official Persian occasions badge
+      createWidget(widget.TEXT, {
+        x: px(40),
+        y: px(246),
+        w: px(386),
+        h: px(26),
+        color: displayInfo.officialColor,
+        text_size: px(18),
+        align_h: align.CENTER_H,
+        align_v: align.CENTER_V,
+        text: reshape(displayInfo.officialText),
+      });
+
+      // 6b. Personal Events badge with gold/amber styling
+      createWidget(widget.TEXT, {
+        x: px(40),
+        y: px(274),
+        w: px(386),
+        h: px(32),
+        color: displayInfo.personalColor,
+        text_size: px(20),
+        align_h: align.CENTER_H,
+        align_v: align.CENTER_V,
+        text: reshape(displayInfo.personalText),
+      });
+    } else {
+      // No personal events: display official national occasions as before
+      createWidget(widget.TEXT, {
+        x: px(45),
+        y: px(248),
+        w: px(376),
+        h: px(58),
+        color: displayInfo.officialColor,
+        text_size: px(22),
+        align_h: align.CENTER_H,
+        align_v: align.CENTER_V,
+        text: reshape(displayInfo.singleText),
+      });
+    }
 
     // 7. Navigation Buttons:
     // Left: Monthly Grid Button (y = 312, w = 180)
