@@ -14,8 +14,18 @@ if (fs.existsSync(path.join(distDir, 'app.js'))) {
   fs.copyFileSync(path.join(distDir, 'app.js'), path.join(rootDir, 'app.js'));
 }
 
+// Ensure shared directory in dist has files from src/shared if needed
+const srcSharedDir = path.join(__dirname, '../src/shared');
+const distSharedDir = path.join(distDir, 'shared');
+if (fs.existsSync(srcSharedDir)) {
+  if (!fs.existsSync(distSharedDir)) {
+    fs.mkdirSync(distSharedDir, { recursive: true });
+  }
+  fs.cpSync(srcSharedDir, distSharedDir, { recursive: true, force: true });
+}
+
 // Copy directories
-['pages', 'widget', 'app-side', 'core', 'ui'].forEach((dir) => {
+['pages', 'widget', 'app-side', 'core', 'ui', 'setting', 'shared'].forEach((dir) => {
   const src = path.join(distDir, dir);
   const dest = path.join(rootDir, dir);
   if (fs.existsSync(src)) {

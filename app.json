@@ -5,8 +5,8 @@
     "appId": 20260901,
     "appName": "AryaMehr Calendar",
     "version": {
-      "code": 5,
-      "name": "1.0.4"
+      "code": 6,
+      "name": "1.0.5"
     },
     "icon": "icon.png",
     "vender": "Allmaker",
@@ -40,6 +40,9 @@
         },
         "app-side": {
           "path": "app-side/index"
+        },
+        "setting": {
+          "path": "setting/index"
         }
       },
       "designWidth": 466,

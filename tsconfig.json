@@ -8,6 +8,7 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "outDir": "./dist",
+    "allowJs": true,
     "types": ["node", "@zeppos/device-types"],
     "baseUrl": ".",
     "paths": {
