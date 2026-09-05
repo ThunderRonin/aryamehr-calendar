@@ -1,108 +1,194 @@
 /**
- * AryaMehr Calendar - Prayer Times Page (اوقات شرعی)
- * Accurate astronomical calculations for Iranian cities
+ * AryaMehr Calendar - Dual Prayer & Zoroastrian Gahs Page (گاه‌ها و اوقات)
+ * Supports both:
+ * 1. Zoroastrian 5 Gahs (گاه‌های پنج‌گانه نیایش با تشخیص گاه کنونی)
+ * 2. Islamic Prayer Times (اوقات شرعی با روش ژئوفیزیک دانشگاه تهران)
  */
 
 import { createWidget, widget, prop, align } from "@zos/ui";
 import { back } from "@zos/router";
 import { px } from "@zos/utils";
 import { calculatePrayerTimes, MAJOR_CITIES } from "../../core/prayer";
+import {
+  calculateZoroastrianGahs,
+  getCurrentGah,
+} from "../../core/zoroastrian";
 import { reshape, toPersianDigits } from "../../core/reshaper";
 import { COLORS } from "../../ui/theme";
 
 let currentCityIndex = 0;
-let cityButtonWidget: any = null;
-let timesWidget: any = null;
+let currentMode: "gahs" | "islamic" = "gahs";
 
-function updatePrayerDisplay() {
+let modeButtonWidget: any = null;
+let cityButtonWidget: any = null;
+let titleWidget: any = null;
+let displayWidget: any = null;
+
+function updateDisplay() {
   const city = MAJOR_CITIES[currentCityIndex];
   const now = new Date();
-  const times = calculatePrayerTimes(
-    now.getFullYear(),
-    now.getMonth() + 1,
-    now.getDate(),
-    city.lat,
-    city.lng,
-    3.5
-  );
+  const gy = now.getFullYear();
+  const gm = now.getMonth() + 1;
+  const gd = now.getDate();
 
+  // Mode Button Label
+  if (modeButtonWidget) {
+    const modeLabel =
+      currentMode === "gahs"
+        ? "حالت: گاه‌های زرتشتی (لمس: شرعی)"
+        : "حالت: اوقات شرعی (لمس: گاه‌ها)";
+    modeButtonWidget.setProperty(prop.MORE, {
+      text: reshape(modeLabel),
+      color: currentMode === "gahs" ? COLORS.GOLD : COLORS.AMBER,
+    });
+  }
+
+  // City Button Label
   if (cityButtonWidget) {
     cityButtonWidget.setProperty(prop.MORE, {
       text: reshape(`شهر: ${city.name} (لمس برای تغییر)`),
     });
   }
 
-  const lines = [
-    `اذان صبح:  ${toPersianDigits(times.fajr)}`,
-    `طلوع آفتاب:  ${toPersianDigits(times.sunrise)}`,
-    `اذان ظهر:  ${toPersianDigits(times.dhuhr)}`,
-    `غروب آفتاب:  ${toPersianDigits(times.sunset)}`,
-    `اذان مغرب:  ${toPersianDigits(times.maghrib)}`,
-  ];
-
-  if (timesWidget) {
-    timesWidget.setProperty(prop.MORE, {
-      text: lines.map((l) => reshape(l)).join("\n\n"),
+  // Title
+  if (titleWidget) {
+    const titleText =
+      currentMode === "gahs" ? "گاه‌های پنج‌گانه زرتشتی" : "اوقات شرعی";
+    titleWidget.setProperty(prop.MORE, {
+      text: reshape(titleText),
     });
+  }
+
+  // Content display
+  if (displayWidget) {
+    if (currentMode === "gahs") {
+      const gahs = calculateZoroastrianGahs(
+        gy,
+        gm,
+        gd,
+        city.lat,
+        city.lng,
+        3.5
+      );
+      const active = getCurrentGah(
+        gahs,
+        now.getHours(),
+        now.getMinutes()
+      );
+
+      const lines = [
+        `★ گاه کنونی: ${active.name} (${active.period})`,
+        `هاون: ${toPersianDigits(gahs.havan.startTime)} تا ${toPersianDigits(gahs.havan.endTime)}`,
+        `رپیتوین: ${toPersianDigits(gahs.rapithwin.startTime)} تا ${toPersianDigits(gahs.rapithwin.endTime)}`,
+        `ازیرن: ${toPersianDigits(gahs.uziran.startTime)} تا ${toPersianDigits(gahs.uziran.endTime)}`,
+        `ایویسروثرم: ${toPersianDigits(gahs.aiwisruthrem.startTime)} تا ${toPersianDigits(gahs.aiwisruthrem.endTime)}`,
+        `اوشهن: ${toPersianDigits(gahs.ushahin.startTime)} تا ${toPersianDigits(gahs.ushahin.endTime)}`,
+      ];
+
+      displayWidget.setProperty(prop.MORE, {
+        text: lines.map((l) => reshape(l)).join("\n"),
+        color: COLORS.WHITE,
+      });
+    } else {
+      const times = calculatePrayerTimes(
+        gy,
+        gm,
+        gd,
+        city.lat,
+        city.lng,
+        3.5
+      );
+
+      const lines = [
+        `اذان صبح:  ${toPersianDigits(times.fajr)}`,
+        `طلوع آفتاب:  ${toPersianDigits(times.sunrise)}`,
+        `اذان ظهر:  ${toPersianDigits(times.dhuhr)}`,
+        `غروب آفتاب:  ${toPersianDigits(times.sunset)}`,
+        `اذان مغرب:  ${toPersianDigits(times.maghrib)}`,
+      ];
+
+      displayWidget.setProperty(prop.MORE, {
+        text: lines.map((l) => reshape(l)).join("\n\n"),
+        color: COLORS.WHITE,
+      });
+    }
   }
 }
 
 Page({
   build() {
-    // 1. Title (y = 25)
-    createWidget(widget.TEXT, {
-      x: px(40),
-      y: px(25),
-      w: px(386),
-      h: px(36),
+    // 1. Title (y = 20)
+    titleWidget = createWidget(widget.TEXT, {
+      x: px(30),
+      y: px(20),
+      w: px(406),
+      h: px(32),
       color: COLORS.GOLD,
-      text_size: px(26),
+      text_size: px(24),
       align_h: align.CENTER_H,
       align_v: align.CENTER_V,
-      text: reshape("اوقات شرعی"),
+      text: "",
     });
 
-    // 2. City Selector Button (y = 68, w = 300)
-    cityButtonWidget = createWidget(widget.BUTTON, {
-      x: px(83),
-      y: px(68),
-      w: px(300),
-      h: px(40),
-      radius: px(20),
+    // 2. Mode Toggle Button (y = 56, w = 320, h = 36)
+    modeButtonWidget = createWidget(widget.BUTTON, {
+      x: px(73),
+      y: px(56),
+      w: px(320),
+      h: px(36),
+      radius: px(18),
       normal_color: COLORS.CARD_BG,
       press_color: COLORS.DARK_GRAY,
-      text_size: px(18),
+      text_size: px(16),
+      color: COLORS.GOLD,
+      text: "",
+      click_func: () => {
+        currentMode = currentMode === "gahs" ? "islamic" : "gahs";
+        updateDisplay();
+      },
+    });
+
+    // 3. City Selector Button (y = 96, w = 280, h = 34)
+    cityButtonWidget = createWidget(widget.BUTTON, {
+      x: px(93),
+      y: px(96),
+      w: px(280),
+      h: px(34),
+      radius: px(17),
+      normal_color: COLORS.CARD_BG,
+      press_color: COLORS.DARK_GRAY,
+      text_size: px(16),
       color: COLORS.AMBER,
       text: "",
       click_func: () => {
         currentCityIndex = (currentCityIndex + 1) % MAJOR_CITIES.length;
-        updatePrayerDisplay();
+        updateDisplay();
       },
     });
 
-    // 3. Times Display Box (y = 120, h = 240)
-    timesWidget = createWidget(widget.TEXT, {
-      x: px(60),
-      y: px(120),
-      w: px(346),
-      h: px(250),
+    // 4. Content Display Box (y = 136, h = 245)
+    displayWidget = createWidget(widget.TEXT, {
+      x: px(35),
+      y: px(136),
+      w: px(396),
+      h: px(245),
       color: COLORS.WHITE,
-      text_size: px(22),
+      text_size: px(19),
       align_h: align.CENTER_H,
       align_v: align.TOP,
       text: "",
     });
 
-    // 4. Back Button (y = 390)
+    // 5. Back Button (y = 392, w = 150, h = 44)
     createWidget(widget.BUTTON, {
       x: px(158),
-      y: px(390),
+      y: px(392),
       w: px(150),
-      h: px(46),
-      radius: px(23),
+      h: px(44),
+      radius: px(22),
       normal_color: COLORS.CARD_BG,
       press_color: COLORS.DARK_GRAY,
-      text_size: px(20),
+      text_size: px(19),
       color: COLORS.GOLD,
       text: reshape("بازگشت"),
       click_func: () => {
@@ -110,6 +196,6 @@ Page({
       },
     });
 
-    updatePrayerDisplay();
+    updateDisplay();
   },
 });

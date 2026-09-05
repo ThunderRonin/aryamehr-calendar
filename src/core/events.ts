@@ -19,28 +19,35 @@ const SOLAR_EVENTS: Record<string, CalendarEvent[]> = {
   "1-2": [{ title: "عید نوروز", isHoliday: true }],
   "1-3": [{ title: "عید نوروز", isHoliday: true }],
   "1-4": [{ title: "عید نوروز", isHoliday: true }],
+  "1-6": [{ title: "زادروز اشوزرتشت (خرداد روز)", isHoliday: false }],
   "1-12": [{ title: "روز جمهوری اسلامی", isHoliday: true }],
   "1-13": [{ title: "جشن سیزده‌بدر / روز طبیعت", isHoliday: true }],
-  "1-29": [{ title: "روز ارتش جمهوری اسلامی", isHoliday: false }],
+  "1-19": [{ title: "جشن فروردینگان (فرودگ)", isHoliday: false }],
+  "1-29": [{ title: "روز ارتش", isHoliday: false }],
 
   // 2: Ordibehesht
   "2-1": [{ title: "بزرگداشت سعدی", isHoliday: false }],
+  "2-3": [{ title: "جشن اردیبهشتگان", isHoliday: false }],
   "2-25": [{ title: "بزرگداشت فردوسی", isHoliday: false }],
-  "2-28": [{ title: "بزرگداشت حکیم عمر خیام", isHoliday: false }],
+  "2-28": [{ title: "بزرگداشت خیام", isHoliday: false }],
 
   // 3: Khordad
   "3-3": [{ title: "فتح خرمشهر / روز مقاومت", isHoliday: false }],
+  "3-6": [{ title: "جشن خردادگان", isHoliday: false }],
   "3-14": [{ title: "رحلت آیت‌الله خمینی", isHoliday: true }],
   "3-15": [{ title: "قیام ۱۵ خرداد", isHoliday: true }],
 
   // 4: Tir
   "4-7": [{ title: "شهادت دکتر بهشتی و ۷۲ تن", isHoliday: false }],
-  "4-10": [{ title: "جشن تیرگان", isHoliday: false }],
+  "4-10": [{ title: "جشن نیلوفر / جشن تیرگان", isHoliday: false }],
+  "4-13": [{ title: "جشن تیرگان و روز ملی دماوند", isHoliday: false }],
 
   // 5: Mordad
   "5-1": [{ title: "بزرگداشت ابن سینا / روز پزشک", isHoliday: false }],
+  "5-7": [{ title: "جشن امردادگان", isHoliday: false }],
 
   // 6: Shahrivar
+  "6-4": [{ title: "جشن شهریورگان (آذرجشن)", isHoliday: false }],
   "6-8": [{ title: "روز مبارزه با تروریسم", isHoliday: false }],
   "6-21": [{ title: "روز ملی سینما", isHoliday: false }],
   "6-27": [{ title: "روز شعر و ادب فارسی / بزرگداشت شهریار", isHoliday: false }],
@@ -54,19 +61,25 @@ const SOLAR_EVENTS: Record<string, CalendarEvent[]> = {
   "8-10": [{ title: "جشن آبانگان", isHoliday: false }],
 
   // 9: Azar
+  "9-9": [{ title: "جشن آذرگان", isHoliday: false }],
   "9-16": [{ title: "روز دانشجو", isHoliday: false }],
-  "9-30": [{ title: "جشن شب یلدا", isHoliday: false }],
+  "9-30": [{ title: "جشن شب چله / یلدا", isHoliday: false }],
 
   // 10: Dey
-  "10-1": [{ title: "جشن خرم‌روز", isHoliday: false }],
+  "10-1": [{ title: "جشن خرم‌روز (دیگان)", isHoliday: false }],
+  "10-5": [{ title: "سالروز درگذشت اشوزرتشت", isHoliday: false }],
+  "10-8": [{ title: "جشن دیگان (دی به آذر)", isHoliday: false }],
+  "10-15": [{ title: "جشن دیگان (دی به مهر)", isHoliday: false }],
+  "10-23": [{ title: "جشن دیگان (دی به دین)", isHoliday: false }],
 
   // 11: Bahman
-  "11-10": [{ title: "جشن سده", isHoliday: false }],
+  "11-2": [{ title: "جشن بهمنگان", isHoliday: false }],
+  "11-10": [{ title: "جشن باشکوه سده", isHoliday: false }],
   "11-22": [{ title: "پیروزی انقلاب اسلامی", isHoliday: true }],
   "11-29": [{ title: "جشن سپندارمذگان / روز عشق ایرانی", isHoliday: false }],
 
   // 12: Esfand
-  "12-5": [{ title: "بزرگداشت خواجه نصیر / روز مهندس", isHoliday: false }],
+  "12-5": [{ title: "جشن اسفندگان / بزرگداشت زن و زمین", isHoliday: false }],
   "12-29": [{ title: "روز ملی شدن صنعت نفت", isHoliday: true }],
   "12-30": [{ title: "روز پایانی سال", isHoliday: true }],
 };

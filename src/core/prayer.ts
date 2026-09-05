@@ -27,6 +27,7 @@ export const MAJOR_CITIES: readonly CityCoords[] = [
   { name: "اهواز", lat: 31.3183, lng: 48.6706 },
   { name: "رشت", lat: 37.2808, lng: 49.5832 },
   { name: "کرمان", lat: 30.2839, lng: 57.0834 },
+  { name: "یزد", lat: 31.8974, lng: 54.3569 },
 ];
 
 function d2r(d: number): number {
