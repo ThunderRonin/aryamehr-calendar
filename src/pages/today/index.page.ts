@@ -22,9 +22,10 @@ import {
   getCurrentGah,
 } from "../../core/zoroastrian";
 import { reshape, toPersianDigits } from "../../core/reshaper";
-import { loadCachedEvents, CalendarEvent } from "../../core/calendar-sync";
+import { CalendarEvent } from "../../core/calendar-sync";
+import { loadCachedEvents } from "../../core/calendar-storage";
 import { buildTodayEventsDisplay } from "../../ui/calendar-display";
-import { onCalendarSync } from "../../app";
+import { onCalendarSync } from "../../core/calendar-events-bus";
 import { COLORS } from "../../ui/theme";
 import { createTodayNavButtons } from "./today-helpers";
 

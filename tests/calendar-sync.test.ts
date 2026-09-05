@@ -3,13 +3,15 @@ import assert from "node:assert/strict";
 import {
   parseICS,
   getEventsForJalaaliDate,
-  saveCachedEvents,
-  loadCachedEvents,
-  clearCachedEvents,
   unescapeICalText,
   parseICalDateTime,
   type CalendarEvent,
 } from "../src/core/calendar-sync.ts";
+import {
+  saveCachedEvents,
+  loadCachedEvents,
+  clearCachedEvents,
+} from "../src/core/calendar-storage.ts";
 
 test("unescapeICalText correctly decodes RFC 5545 escape characters", () => {
   assert.equal(unescapeICalText("Hello\\, world\\; test\\\\"), "Hello, world; test\\");

@@ -7,9 +7,8 @@
 import { toJalaali, toGregorian } from "./jalaali";
 import { CalendarEvent } from "./ical-parser";
 
-// Re-export modular parser & storage components for complete backwards compatibility
+// Re-export modular parser components
 export * from "./ical-parser";
-export * from "./calendar-storage";
 
 /**
  * Returns events matching the specified Jalaali day (jy, jm, jd).

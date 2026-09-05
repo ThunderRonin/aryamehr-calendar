@@ -10,7 +10,7 @@ import { CalendarEvent } from "../src/core/calendar-sync";
 import {
   handleIncomingCalendarEvents,
   onCalendarSync,
-} from "../src/app";
+} from "../src/core/calendar-events-bus";
 import { loadCachedEvents, clearCachedEvents } from "../src/core/calendar-storage";
 import { toGregorian } from "../src/core/jalaali";
 import { reshape } from "../src/core/reshaper";

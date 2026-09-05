@@ -14,7 +14,7 @@ import {
   getJalaaliMonthLength,
 } from "../../core/jalaali";
 import { reshape } from "../../core/reshaper";
-import { loadCachedEvents } from "../../core/calendar-sync";
+import { loadCachedEvents } from "../../core/calendar-storage";
 import { buildDayDetailText } from "../../ui/calendar-display";
 import { COLORS } from "../../ui/theme";
 import {

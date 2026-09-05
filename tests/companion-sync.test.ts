@@ -9,11 +9,11 @@ import {
 } from "../src/core/calendar-sync";
 import { parseICS } from "../src/core/ical-parser";
 import { loadCachedEvents, saveCachedEvents, clearCachedEvents } from "../src/core/calendar-storage";
-import { createSettingsPageConfig } from "../src/setting/index";
+import { createSettingsPageConfig } from "../src/setting/settings-config";
 import {
   syncAndFetchCalendarEvents,
   SettingsStorageLike,
-} from "../src/app-side/index";
+} from "../src/app-side/sync-service";
 
 // Mock settings storage
 class MockSettingsStorage implements SettingsStorageLike {

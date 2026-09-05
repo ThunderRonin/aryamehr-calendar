@@ -4,62 +4,17 @@
  * and background calendar sync with companion service.
  */
 
+import "./shared/device-polyfill";
 import * as ble from "@zos/ble";
 import { MessageBuilder } from "./shared/message";
-import { saveCachedEvents, CalendarEvent } from "./core/calendar-sync";
+import {
+  handleIncomingCalendarEvents,
+  clearCalendarSyncListeners,
+} from "./core/calendar-events-bus";
 
 let messageBuilderInstance: MessageBuilder | null = null;
 
-export type CalendarSyncListener = (events: CalendarEvent[]) => void;
-const syncListeners: Set<CalendarSyncListener> = new Set();
-
-/**
- * Registers a listener callback invoked whenever calendar events are synced via BLE.
- * Returns an unregister function to remove the listener.
- */
-export function onCalendarSync(cb: CalendarSyncListener): () => void {
-  syncListeners.add(cb);
-  return () => {
-    syncListeners.delete(cb);
-  };
-}
-
-/**
- * Notifies all active sync listeners of updated calendar events.
- */
-export function notifyCalendarSync(events: CalendarEvent[]): void {
-  for (const listener of syncListeners) {
-    try {
-      listener(events);
-    } catch (err) {
-      console.log("Error in calendar sync listener:", err);
-    }
-  }
-}
-
-export function getAppMessageBuilder(): MessageBuilder | null {
-  return messageBuilderInstance;
-}
-
-/**
- * Handles incoming events array from either push notification or request response.
- * Resiliently accepts raw arrays or objects with .events / .result fields.
- */
-export function handleIncomingCalendarEvents(payload: any): CalendarEvent[] {
-  if (!payload) return [];
-  const eventList = Array.isArray(payload)
-    ? payload
-    : (payload?.events || payload?.result || []);
-
-  if (Array.isArray(eventList)) {
-    saveCachedEvents(eventList as CalendarEvent[]);
-    notifyCalendarSync(eventList as CalendarEvent[]);
-    return eventList;
-  }
-  return [];
-}
-
-export const appConfig = {
+const appConfig = {
   globalData: {
     appName: "AryaMehr Calendar",
   },
@@ -113,7 +68,7 @@ export const appConfig = {
   },
   onDestroy() {
     console.log("AryaMehr Calendar exited");
-    syncListeners.clear();
+    clearCalendarSyncListeners();
     try {
       if (messageBuilderInstance) {
         messageBuilderInstance.disConnect();
