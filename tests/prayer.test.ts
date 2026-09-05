@@ -30,3 +30,5 @@ test("MAJOR_CITIES contains coordinates for key Iranian cities", () => {
   assert.equal(MAJOR_CITIES.some((c) => c.name === "مشهد"), true);
   assert.equal(MAJOR_CITIES.some((c) => c.name === "اصفهان"), true);
 });
+
+

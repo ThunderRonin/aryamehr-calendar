@@ -71,3 +71,5 @@ test("JALAALI_MONTH_NAMES and PERSIAN_WEEKDAYS are defined", () => {
   assert.equal(PERSIAN_WEEKDAYS[0], "شنبه");
   assert.equal(PERSIAN_WEEKDAYS[6], "جمعه");
 });
+
+

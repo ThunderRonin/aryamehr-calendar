@@ -32,3 +32,5 @@ test("isOfficialHoliday handles Friday as holiday", () => {
   // 1405-06-20 is Friday -> official holiday
   assert.equal(isOfficialHoliday(1405, 6, 20), true);
 });
+
+

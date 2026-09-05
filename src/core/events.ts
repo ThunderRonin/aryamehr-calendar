@@ -4,8 +4,8 @@
  * and lunar Islamic holidays.
  */
 
-import { toGregorian, getJalaaliDayOfWeek } from "./jalaali.ts";
-import { toHijri } from "./hijri.ts";
+import { toGregorian, getJalaaliDayOfWeek } from "./jalaali";
+import { toHijri } from "./hijri";
 
 export interface CalendarEvent {
   title: string;
@@ -134,3 +134,4 @@ export function isOfficialHoliday(
   const events = getEventsForDate(jy, jm, jd);
   return events.some((e) => e.isHoliday);
 }
+
