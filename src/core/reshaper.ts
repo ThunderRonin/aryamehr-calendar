@@ -1,4 +1,7 @@
 /**
+ * AryaMehr Calendar - Zero-Dependency Persian Reshaper & BiDi Engine
+ * Maps Arabic/Persian characters into Unicode Presentation Forms-B/A
+ * with cursive joining and RTL word reordering for Zepp OS text widgets.
  * AryaMehr Calendar - Zero-Dependency Persian Reshaper & Cursive Joining Engine
  * Maps Arabic/Persian characters into connected Unicode Presentation Forms
  * for Zepp OS text widgets in natural reading order (no string inversion).
@@ -111,7 +114,12 @@ export function toPersianDigits(input: string | number): string {
   return str.replace(/[0-9]/g, (w) => PERSIAN_DIGITS[+w] ?? w);
 }
 
+function isArabicPersianChar(code: number): boolean {
+  return (code >= 0x0600 && code <= 0x06FF) || (code >= 0xFB50 && code <= 0xFDFF);
+}
+
 /**
+ * Reshapes a single Persian/Arabic word into connected cursive forms.
  * Reshapes a single Persian/Arabic word into connected cursive forms in natural forward reading order.
  */
 function reshapeWord(word: string): string {
@@ -148,6 +156,7 @@ function reshapeWord(word: string): string {
     }
 
     const glyphs = GLYPH_MAP[code];
+
     if (!glyphs) {
       result.push(word[i]);
       continue;
@@ -159,11 +168,14 @@ function reshapeWord(word: string): string {
     const connectsBack =
       prevCode !== 0 &&
       GLYPH_MAP[prevCode] &&
+      !NON_FORWARD_CONNECTORS.has(prevCode);
       !NON_FORWARD_CONNECTORS.has(prevCode) &&
       prevCode !== 0x200C;
 
     const connectsForward =
       nextCode !== 0 &&
+      GLYPH_MAP[nextCode] &&
+      !NON_FORWARD_CONNECTORS.has(code);
       (GLYPH_MAP[nextCode] || (nextCode === 0x0644 && LAM_ALEF_MAP[codes[i + 2]])) &&
       !NON_FORWARD_CONNECTORS.has(code) &&
       nextCode !== 0x200C;
@@ -187,12 +199,14 @@ function reshapeWord(word: string): string {
 }
 
 /**
+ * Full reshaping and BiDi ordering for complete sentences and mixed text.
  * Full reshaping for complete sentences and mixed text.
  * Preserves numbers and token order in natural reading sequence.
  */
 export function reshape(text: string): string {
   if (!text) return "";
 
+  // Convert Western digits to Persian digits first
   // Convert Western digits to Persian digits
   const withPersianDigits = toPersianDigits(text);
 

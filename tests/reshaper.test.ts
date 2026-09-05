@@ -12,8 +12,7 @@ test("reshape shapes cursive Persian letters in natural forward reading order", 
   // Test that "شنبه" shapes starting with initial Sheen
   const reshaped = reshape("شنبه");
   assert.notEqual(reshaped, "شنبه");
-  // First character should be Initial Sheen (U+FEB7), not Final Heh!
-  assert.equal(reshaped.charCodeAt(0), 0xFEB7);
+  assert.equal(reshaped.charCodeAt(0), 0xFEB7); // Initial Sheen
 
   // Test that "شهریور ۱۴۰۵" preserves the number order (1405 -> ۱۴۰۵, not ۵۰۴۱)
   const reshapedDate = reshape("شهریور ۱۴۰۵");
@@ -24,8 +23,7 @@ test("reshape shapes cursive Persian letters in natural forward reading order", 
 test("reshape handles Persian specific letters (گ چ پ ژ) and Lam-Alef", () => {
   const result = reshape("پنج‌شنبه");
   assert.equal(typeof result, "string");
-  // First char should be Initial Pe (U+FB58)
-  assert.equal(result.charCodeAt(0), 0xFB58);
+  assert.equal(result.charCodeAt(0), 0xFB58); // Initial Pe
 
   const resultG = reshape("اردیبهشت");
   assert.equal(typeof resultG, "string");
