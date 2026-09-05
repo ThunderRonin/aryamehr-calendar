@@ -1,7 +1,7 @@
 /**
- * AryaMehr Calendar - Zero-Dependency Persian Reshaper & BiDi Engine
- * Maps Arabic/Persian characters into Unicode Presentation Forms-B/A
- * with cursive joining and RTL word reordering for Zepp OS text widgets.
+ * AryaMehr Calendar - Zero-Dependency Persian Reshaper & Cursive Joining Engine
+ * Maps Arabic/Persian characters into connected Unicode Presentation Forms
+ * for Zepp OS text widgets in natural reading order (no string inversion).
  */
 
 // [Isolated, Final, Initial, Medial]
@@ -15,7 +15,7 @@ const GLYPH_MAP: Record<number, [number, number, number, number]> = {
   // Alef with hamza below
   0x0625: [0xFE87, 0xFE88, 0xFE87, 0xFE88],
   // Yeh with hamza
-  0x0626: [0xFE89, 0xFE8A, 0xFE8B, 0xFE8C],
+  0x0626: [0xFE89, 0xFE8A, 0xFBFE, 0xFBFF],
   // Alef
   0x0627: [0xFE8D, 0xFE8E, 0xFE8D, 0xFE8E],
   // Beh
@@ -90,6 +90,14 @@ const GLYPH_MAP: Record<number, [number, number, number, number]> = {
   0x06CC: [0xFBFC, 0xFBFD, 0xFBFE, 0xFBFF],
 };
 
+// Lam-Alef Ligatures: [Isolated, Final]
+const LAM_ALEF_MAP: Record<number, [number, number]> = {
+  0x0622: [0xFEF5, 0xFEF6], // آ
+  0x0623: [0xFEF7, 0xFEF8], // أ
+  0x0625: [0xFEF9, 0xFEFA], // إ
+  0x0627: [0xFEFB, 0xFEFC], // ا
+};
+
 // Non-connecting letters (only connect backwards to preceding letter, never forward)
 const NON_FORWARD_CONNECTORS = new Set([
   0x0622, 0x0623, 0x0624, 0x0625, 0x0627, 0x062F, 0x0630, 0x0631, 0x0632,
@@ -103,12 +111,8 @@ export function toPersianDigits(input: string | number): string {
   return str.replace(/[0-9]/g, (w) => PERSIAN_DIGITS[+w] ?? w);
 }
 
-function isArabicPersianChar(code: number): boolean {
-  return (code >= 0x0600 && code <= 0x06FF) || (code >= 0xFB50 && code <= 0xFDFF);
-}
-
 /**
- * Reshapes a single Persian/Arabic word into connected cursive forms.
+ * Reshapes a single Persian/Arabic word into connected cursive forms in natural forward reading order.
  */
 function reshapeWord(word: string): string {
   const codes: number[] = [];
@@ -121,8 +125,29 @@ function reshapeWord(word: string): string {
 
   for (let i = 0; i < len; i++) {
     const code = codes[i];
-    const glyphs = GLYPH_MAP[code];
 
+    // Zero-Width Non-Joiner (ZWNJ / نیم‌فاصله)
+    if (code === 0x200C) {
+      continue;
+    }
+
+    // Check for Lam-Alef ligature
+    if (code === 0x0644 && i < len - 1 && LAM_ALEF_MAP[codes[i + 1]]) {
+      const alefCode = codes[i + 1];
+      const prevCode = i > 0 ? codes[i - 1] : 0;
+      const connectsBack =
+        prevCode !== 0 &&
+        GLYPH_MAP[prevCode] &&
+        !NON_FORWARD_CONNECTORS.has(prevCode) &&
+        prevCode !== 0x200C;
+
+      const lig = LAM_ALEF_MAP[alefCode];
+      result.push(String.fromCharCode(connectsBack ? lig[1] : lig[0]));
+      i++; // Skip the following alef
+      continue;
+    }
+
+    const glyphs = GLYPH_MAP[code];
     if (!glyphs) {
       result.push(word[i]);
       continue;
@@ -134,12 +159,14 @@ function reshapeWord(word: string): string {
     const connectsBack =
       prevCode !== 0 &&
       GLYPH_MAP[prevCode] &&
-      !NON_FORWARD_CONNECTORS.has(prevCode);
+      !NON_FORWARD_CONNECTORS.has(prevCode) &&
+      prevCode !== 0x200C;
 
     const connectsForward =
       nextCode !== 0 &&
-      GLYPH_MAP[nextCode] &&
-      !NON_FORWARD_CONNECTORS.has(code);
+      (GLYPH_MAP[nextCode] || (nextCode === 0x0644 && LAM_ALEF_MAP[codes[i + 2]])) &&
+      !NON_FORWARD_CONNECTORS.has(code) &&
+      nextCode !== 0x200C;
 
     let formIndex = 0; // Isolated by default
     if (connectsBack && connectsForward) {
@@ -155,32 +182,36 @@ function reshapeWord(word: string): string {
     result.push(String.fromCharCode(glyphs[formIndex]));
   }
 
-  // Reverse characters in the word for display on LTR widget engines
-  return result.reverse().join("");
+  // NATURAL FORWARD ORDER - DO NOT REVERSE CHARACTERS
+  return result.join("");
 }
 
 /**
- * Full reshaping and BiDi ordering for complete sentences and mixed text.
+ * Full reshaping for complete sentences and mixed text.
+ * Preserves numbers and token order in natural reading sequence.
  */
 export function reshape(text: string): string {
   if (!text) return "";
 
-  // Convert Western digits to Persian digits first
+  // Convert Western digits to Persian digits
   const withPersianDigits = toPersianDigits(text);
 
-  // Split into words and tokens while keeping spaces and punctuation
-  const tokens = withPersianDigits.split(/(\s+|[()،,.:/\\-])/);
+  // Split into tokens (words, spaces, and punctuation)
+  const tokens = withPersianDigits.split(/(\s+|[()،,.:/\\•\-])/);
 
-  // Process tokens: Persian words are reshaped and the token sequence is reversed
   const processedTokens = tokens.map((token) => {
     if (!token) return "";
-    const firstCode = token.charCodeAt(0);
-    if (isArabicPersianChar(firstCode)) {
+    // If it's numbers or punctuation, preserve untouched
+    if (/^[۰-۹0-9\s()،,.:/\\•\-]+$/.test(token)) {
+      return token;
+    }
+    // If it has Arabic/Persian letters, reshape cursive letters
+    if (/[\u0600-\u06FF\uFB50-\uFDFF]/.test(token)) {
       return reshapeWord(token);
     }
     return token;
   });
 
-  // Reorder tokens from right-to-left
-  return processedTokens.reverse().join("");
+  // NATURAL FORWARD ORDER - DO NOT REVERSE TOKENS
+  return processedTokens.join("");
 }
