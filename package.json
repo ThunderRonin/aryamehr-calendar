@@ -1,0 +1,22 @@
+{
+  "name": "aryamehr-calendar",
+  "version": "1.0.0",
+  "description": "AryaMehr Persian Calendar for Amazfit GTR 4 (Zepp OS)",
+  "main": "app.js",
+  "scripts": {
+    "build:ts": "tsc",
+    "watch:ts": "tsc --watch",
+    "test": "node --test tests/*.test.ts",
+    "build": "tsc && node ./scripts/zeus.js build",
+    "dev": "tsc && node ./scripts/zeus.js dev",
+    "preview": "tsc && node ./scripts/zeus.js preview"
+  },
+  "keywords": ["zeppos", "amazfit", "gtr4", "calendar", "persian", "jalaali"],
+  "author": "Allmaker",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^22.13.0",
+    "@zeppos/device-types": "^4.0.0",
+    "typescript": "^5.7.3"
+  }
+}

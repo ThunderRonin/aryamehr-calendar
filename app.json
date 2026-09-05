@@ -1,0 +1,68 @@
+{
+  "configVersion": "v3",
+  "app": {
+    "appType": "app",
+    "appId": 20260901,
+    "appName": "AryaMehr Calendar",
+    "version": {
+      "code": 1,
+      "name": "1.0.0"
+    },
+    "icon": "assets/icon.png",
+    "vender": "Allmaker",
+    "description": "تقویم آریامهر - تقویم پارسی، خورشیدی، قمری، میلادی، مناسبت‌ها و اوقات شرعی برای امیزفیت جی‌تی‌آر ۴"
+  },
+  "runtime": {
+    "apiVersion": {
+      "minVersion": "2.0",
+      "target": "2.0.0",
+      "compatible": "2.0.0"
+    }
+  },
+  "targets": {
+    "466x466-gtr-4": {
+      "module": {
+        "page": {
+          "pages": [
+            "pages/today/index.page",
+            "pages/month/index.page",
+            "pages/converter/index.page",
+            "pages/prayer/index.page"
+          ]
+        },
+        "app-widget": {
+          "widgets": [
+            {
+              "path": "widget/index"
+            }
+          ]
+        },
+        "app-side": {
+          "path": "app-side/index"
+        }
+      },
+      "designWidth": 466,
+      "platforms": [
+        {
+          "name": "Berlin",
+          "deviceSource": 7930112
+        },
+        {
+          "name": "BerlinW",
+          "deviceSource": 7930113
+        }
+      ]
+    }
+  },
+  "permissions": [
+    "data:os.device.info",
+    "device:os.local_storage"
+  ],
+  "i18n": {
+    "en-US": {
+      "name": "AryaMehr Calendar"
+    }
+  },
+  "defaultLanguage": "en-US",
+  "debug": false
+}
