@@ -1,0 +1,4 @@
+#!/bin/sh
+node ./scripts/bump-version.cjs patch
+git add package.json app.json
+
