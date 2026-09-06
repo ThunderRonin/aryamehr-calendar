@@ -1,6 +1,6 @@
 {
   "name": "aryamehr-calendar",
-  "version": "1.0.28",
+  "version": "1.0.29",
   "description": "AryaMehr Persian Calendar for Amazfit GTR 4 (Zepp OS)",
   "main": "app.js",
   "type": "module",
