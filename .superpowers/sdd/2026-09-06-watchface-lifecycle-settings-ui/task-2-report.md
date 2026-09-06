@@ -12,3 +12,4 @@ Follow-up: composition ownership expanded; settings-config now places guide last
 Follow-up: event-list labels and props are emoji-free and native-only.
 Validation: focused UI tests 2/2 pass; full suite 60/60 pass.
 Validation: typecheck, build:ts, and git diff --check pass.
+Resolution: the expanded ownership completed the prior config and event-list handoff.
