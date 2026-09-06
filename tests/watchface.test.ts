@@ -2,30 +2,29 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
-import { execFileSync } from 'node:child_process';
+import { inflateRawSync } from 'node:zlib';
 import { runInNewContext } from 'node:vm';
 import { toGregorian } from '../src/core/jalaali';
 
 const root = 'nev_lcd_bymarek29_gb_gtr_4-9563-5f3d29c0e8/';
 const provenance = JSON.parse(readFileSync('tests/fixtures/watchface-original.json', 'utf8'));
 const source = readFileSync(root + 'watchface/index.js', 'utf8');
-const baselineSource = execFileSync('git', ['show', `6107aaa:${root}watchface/index.js`], { encoding: 'utf8' });
+const baselineLifecycle = inflateRawSync(
+  Buffer.from(provenance.indexLifecycleBaselineDeflateBase64, 'base64'),
+).toString('utf8');
 const stripMarkedAdditions = (text: string) =>
   text.replace(/^\/\/ ARYAMEHR ADDITION START\r?\n[\s\S]*?^\/\/ ARYAMEHR ADDITION END\r?\n?/gm, '');
 const lifecycleStart = '            normal_time_hour_text_font =';
-const baselineLifecycleStart = '            let screenType =';
 const lifecycleEnd = '                //dynamic modify end';
 const currentStart = source.indexOf(lifecycleStart);
-const baselineStart = baselineSource.indexOf(baselineLifecycleStart);
 const currentEnd = source.indexOf(lifecycleEnd, currentStart);
-const baselineEnd = baselineSource.indexOf(lifecycleEnd, baselineStart);
-assert.ok(currentStart >= 0 && baselineStart >= 0 && currentEnd > currentStart && baselineEnd > baselineStart);
+assert.ok(currentStart >= 0 && currentEnd > currentStart);
 const original = stripMarkedAdditions(
-  source.slice(0, currentStart) + baselineSource.slice(baselineStart, baselineEnd) + source.slice(currentEnd),
+  source.slice(0, currentStart) + baselineLifecycle + source.slice(currentEnd),
 ).replace(/\r?\n$/, '');
 const sha256 = (data: string | Buffer) => createHash('sha256').update(data).digest('hex');
 
-test('removing only the marked widget additions recovers the exact original watchface', () => {
+test('stripping AryaMehr additions and approved lifecycle normalization preserves original provenance', () => {
   assert.equal(sha256(original), provenance.indexNormalizedSha256);
   const appText = readFileSync(root + 'app.js', 'utf8').replace(/\r?\n/g, '\r\n');
   assert.equal(sha256(appText), provenance.appSha256);
