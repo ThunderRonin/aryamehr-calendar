@@ -1,51 +1,25 @@
 /**
- * AryaMehr Calendar - Companion Settings Page UI Components
- * Native declarative UI view builders using standard Zepp OS Settings components.
- * Strictly adheres to Zepp OS Settings bridge (Section, TextInput, Button, Text, TextImageRow).
+ * AryaMehr Calendar - Companion Settings Page UI Components.
+ *
+ * These builders intentionally pass only the small, documented props used by
+ * the Zepp settings bridge. Styling belongs to the host app's native controls.
  */
 
 export function buildGuideSection(Section: any, Text: any) {
   if (!Section) return null;
-  const guideStyle = {
-    fontSize: "13px",
-    color: "#555555",
-    margin: "4px 0",
-    lineHeight: "18px",
-    direction: "rtl",
-    textAlign: "right",
-  };
 
   const children: any[] = [];
-
   if (Text) {
     children.push(
-      Text(
-        { paragraph: true, style: guideStyle },
-        [
-          "برنامه‌های جانبی ساعت به دلایل امنیتی امکان دسترسی مستقیم به تقویم سیستمی گوشی را ندارند؛ همگام‌سازی از طریق آدرس فید اینترنتی انجام می‌شود.",
-        ]
-      ),
-      Text(
-        { paragraph: true, style: guideStyle },
-        [
-          "• آیفون (iCloud): برنامه تقویم آیفون > دکمه تقویم‌ها (پایین) > لمس علامت (i) کنار تقویم > روشن کردن Public Calendar > لمس Share Link و کپی آدرس (webcal://).",
-        ]
-      ),
-      Text(
-        { paragraph: true, style: guideStyle },
-        [
-          "• گوگل (Google Calendar): تنظیمات تقویم گوگل در مرورگر > بخش Integrate calendar > کپی آدرس مخفی iCal (با پسوند ics.).",
-        ]
-      )
+      Text({ paragraph: true }, ["اتصال تقویم ابری به ساعت"]),
+      Text({ paragraph: true }, ["iCloud: تقویم > اشتراک‌گذاری"]),
+      Text({ paragraph: true }, ["webcal://...ics"]),
+      Text({ paragraph: true }, ["Google: Settings > Integrate calendar"]),
+      Text({ paragraph: true }, ["https://...ics"])
     );
   }
 
-  return Section(
-    {
-      title: "راهنمای اتصال به تقویم آیفون و گوگل",
-    },
-    children
-  );
+  return Section({ title: "راهنمای اتصال" }, children);
 }
 
 export function buildSubscriptionSection(
@@ -56,47 +30,26 @@ export function buildSubscriptionSection(
   onUrlChange: (val: string) => void
 ) {
   if (!Section) return null;
-  const children: any[] = [];
 
+  const children: any[] = [];
   if (Text) {
     children.push(
-      Text(
-        {
-          paragraph: true,
-          style: {
-            fontSize: "13px",
-            color: "#666666",
-            marginBottom: "8px",
-            direction: "rtl",
-            textAlign: "right",
-          },
-        },
-        ["آدرس اشتراک تقویم اپل آی‌کلود، گوگل یا اوت‌لوک را در زیر وارد یا جای‌گذاری (Paste) کنید:"]
-      )
+      Text({ paragraph: true }, ["آدرس فید تقویم را وارد کنید."])
     );
   }
-
   if (TextInput) {
     children.push(
       TextInput({
         label: "آدرس فید تقویم",
-        placeholder: "webcal://... یا https://...",
+        placeholder: "https://...ics",
         value: calendarUrl,
         settingsKey: "calendarUrl",
-        bold: true,
-        labelStyle: { fontSize: "14px", color: "#222222" },
-        subStyle: { fontSize: "12px", color: "#007aff" },
         onChange: onUrlChange,
       })
     );
   }
 
-  return Section(
-    {
-      title: "اشتراک تقویم ابری (iCal / WebCal)",
-    },
-    children
-  );
+  return Section({ title: "تقویم ابری" }, children);
 }
 
 export function buildSyncSection(
@@ -112,50 +65,25 @@ export function buildSyncSection(
   if (!Section) return null;
 
   const renderRow = (label: string, sublabel: string) => {
-    if (TextImageRow) {
-      return TextImageRow({ label, sublabel });
-    }
-    if (Text) {
-      return Text(
-        {
-          paragraph: true,
-          style: {
-            fontSize: "13px",
-            color: "#333333",
-            margin: "4px 0",
-            direction: "rtl",
-            textAlign: "right",
-          },
-        },
-        [`${label}: ${sublabel}`]
-      );
-    }
+    if (TextImageRow) return TextImageRow({ label, sublabel });
+    if (Text) return Text({ paragraph: true }, [`${label}: ${sublabel}`]);
     return null;
   };
 
   const children = [
-    renderRow("📌 وضعیت", syncStatus),
-    renderRow("📊 رویدادهای دریافت‌شده", `${syncedCount} رویداد`),
-    renderRow("🕒 زمان آخرین همگام‌سازی", lastSyncFormatted),
+    renderRow("وضعیت", syncStatus),
+    renderRow("رویدادهای دریافت‌شده", `${syncedCount} رویداد`),
+    renderRow("آخرین همگام‌سازی", lastSyncFormatted),
     Button
       ? Button({
-          label: "🔄 همگام‌سازی تقویم با ساعت (Sync Now)",
+          label: "همگام‌سازی تقویم",
           color: "primary",
-          style: {
-            marginTop: "10px",
-            borderRadius: "8px",
-          },
           onClick: onSyncClick,
         })
       : null,
   ].filter(Boolean);
 
-  return Section(
-    {
-      title: "وضعیت و فرمان همگام‌سازی",
-    },
-    children
-  );
+  return Section({ title: "همگام‌سازی" }, children);
 }
 
 export function buildQuickAddSection(
@@ -170,71 +98,40 @@ export function buildQuickAddSection(
   onAddClick: () => void
 ) {
   if (!Section) return null;
+
   const children: any[] = [];
-
   if (Text) {
-    children.push(
-      Text(
-        {
-          paragraph: true,
-          style: {
-            fontSize: "13px",
-            color: "#666666",
-            marginBottom: "8px",
-            direction: "rtl",
-            textAlign: "right",
-          },
-        },
-        ["ثبت سریع قرار ملاقات و یادآوری اختصاصی روی تقویم ساعت:"]
-      )
-    );
+    children.push(Text({ paragraph: true }, ["رویداد شخصی روی ساعت"]));
   }
-
   if (TextInput) {
     children.push(
       TextInput({
         label: "عنوان رویداد",
-        placeholder: "مثال: جلسه کاری، نوبت پزشک، تولد",
+        placeholder: "مثال: جلسه کاری",
         value: draftTitle,
         settingsKey: "draftEventTitle",
-        bold: true,
-        labelStyle: { fontSize: "14px", color: "#222222" },
-        subStyle: { fontSize: "12px", color: "#555555" },
         onChange: onTitleChange,
       }),
       TextInput({
         label: "تاریخ و ساعت",
-        placeholder: "1405/06/15 10:30 یا 2026-09-06 10:30",
+        placeholder: "1405/06/15 10:30",
         value: draftDate,
         settingsKey: "draftEventDate",
-        bold: true,
-        labelStyle: { fontSize: "14px", color: "#222222" },
-        subStyle: { fontSize: "12px", color: "#555555" },
         onChange: onDateChange,
       })
     );
   }
-
   if (Button) {
     children.push(
       Button({
-        label: "➕ ثبت رویداد در تقویم ساعت",
+        label: "ثبت رویداد",
         color: "default",
-        style: {
-          marginTop: "8px",
-          borderRadius: "8px",
-        },
         onClick: onAddClick,
       })
     );
   }
 
-  return Section(
-    {
-      title: "افزودن رویداد دستی",
-    },
-    children
-  );
+  return Section({ title: "رویداد دستی" }, children);
 }
 
 export { buildEventListSection } from "./event-list";
