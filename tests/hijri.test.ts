@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { toHijri, HIJRI_MONTH_NAMES } from "../src/core/hijri.ts";
+import { toHijri, HIJRI_MONTH_NAMES } from "../src/core/hijri";
 
 test("toHijri converts known Gregorian dates to Lunar Hijri correctly", () => {
   // 2026-09-05 is 22 Rabi al-Awwal 1448

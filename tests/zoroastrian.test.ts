@@ -8,7 +8,7 @@ import {
   getYazdgerdiYear,
   calculateZoroastrianGahs,
   getCurrentGah,
-} from "../src/core/zoroastrian.ts";
+} from "../src/core/zoroastrian";
 
 test("ZOROASTRIAN_DAYS contains all 30 named days", () => {
   assert.equal(ZOROASTRIAN_DAYS.length, 30);

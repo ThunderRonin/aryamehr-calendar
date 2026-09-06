@@ -8,7 +8,7 @@ export interface CalendarEvent {
   id: string;
   title: string;
   startTimestamp: number; // Unix timestamp in ms
-  endTimestamp: number;
+  endTimestamp?: number;
   isAllDay: boolean;
   location?: string;
   description?: string;

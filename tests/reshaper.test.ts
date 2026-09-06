@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { reshape, toPersianDigits } from "../src/core/reshaper.ts";
+import { reshape, toPersianDigits } from "../src/core/reshaper";
 
 test("toPersianDigits converts English digits to Persian digits", () => {
   assert.equal(toPersianDigits("1405/06/14"), "۱۴۰۵/۰۶/۱۴");

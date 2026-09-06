@@ -1,12 +1,13 @@
 {
   "name": "aryamehr-calendar",
-  "version": "1.0.26",
+  "version": "1.0.27",
   "description": "AryaMehr Persian Calendar for Amazfit GTR 4 (Zepp OS)",
   "main": "app.js",
   "type": "module",
   "scripts": {
     "build:ts": "node ./scripts/build.cjs",
     "watch:ts": "tsc --watch",
+    "typecheck": "tsc --noEmit && tsc -p tsconfig.test.json",
     "test": "tsx --test tests/*.test.ts",
     "bump": "node ./scripts/bump-version.cjs",
     "build": "node ./scripts/build.cjs && node ./scripts/zeus.cjs build",

@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { calculatePrayerTimes, MAJOR_CITIES } from "../src/core/prayer.ts";
+import { calculatePrayerTimes, MAJOR_CITIES } from "../src/core/prayer";
 
 test("calculatePrayerTimes calculates valid times for Tehran", () => {
   const times = calculatePrayerTimes(2026, 9, 5);

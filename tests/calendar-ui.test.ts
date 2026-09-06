@@ -131,7 +131,7 @@ test("handleIncomingCalendarEvents persists events from MessageBuilder payloads 
   // Payload format 1: { events: [...] }
   const saved1 = handleIncomingCalendarEvents({ events: testEvents });
   assert.equal(saved1.length, 1);
-  assert.equal(notifiedEvents?.length, 1);
+  assert.equal((notifiedEvents as CalendarEvent[] | null)?.length, 1);
   const cached1 = loadCachedEvents();
   assert.equal(cached1.length, 1);
   assert.equal(cached1[0].id, "sync_1");
@@ -144,7 +144,7 @@ test("handleIncomingCalendarEvents persists events from MessageBuilder payloads 
   notifiedEvents = null;
   const saved3 = handleIncomingCalendarEvents(testEvents);
   assert.equal(saved3.length, 1);
-  assert.equal(notifiedEvents?.length, 1);
+  assert.equal((notifiedEvents as CalendarEvent[] | null)?.length, 1);
 
   // Unsubscribe listener
   unsubscribe();

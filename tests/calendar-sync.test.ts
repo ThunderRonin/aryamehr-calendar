@@ -6,12 +6,12 @@ import {
   unescapeICalText,
   parseICalDateTime,
   type CalendarEvent,
-} from "../src/core/calendar-sync.ts";
+} from "../src/core/calendar-sync";
 import {
   saveCachedEvents,
   loadCachedEvents,
   clearCachedEvents,
-} from "../src/core/calendar-storage.ts";
+} from "../src/core/calendar-storage";
 
 test("unescapeICalText correctly decodes RFC 5545 escape characters", () => {
   assert.equal(unescapeICalText("Hello\\, world\\; test\\\\"), "Hello, world; test\\");

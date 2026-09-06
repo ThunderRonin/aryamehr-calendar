@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { getEventsForDate, isOfficialHoliday } from "../src/core/events.ts";
+import { getEventsForDate, isOfficialHoliday } from "../src/core/events";
 
 test("getEventsForDate identifies Solar Iranian holidays", () => {
   // Nowruz 1 Farvardin

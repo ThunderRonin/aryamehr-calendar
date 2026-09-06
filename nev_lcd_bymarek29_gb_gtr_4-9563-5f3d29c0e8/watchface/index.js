@@ -107,13 +107,15 @@
         function launchAryaMehr() {
             try {
                 console.log('launchAryaMehr invoked');
+                try {
+                    resumeWatchface();
+                } catch (re) {}
+
                 if (typeof hmApp !== 'undefined' && hmApp.startApp) {
                     try {
                         hmApp.startApp({
                             appid: 20260901,
-                            appId: 20260901,
-                            url: 'pages/today/index.page',
-                            native: false
+                            url: 'pages/today/index.page'
                         });
                         return;
                     } catch (e1) {
@@ -123,11 +125,20 @@
                         hmApp.startApp({
                             appid: 20260901,
                             appId: 20260901,
+                            url: 'pages/today/index.page',
                             native: false
                         });
                         return;
                     } catch (e2) {
-                        console.log('hmApp.startApp appid only error:', e2);
+                        console.log('hmApp.startApp with native false error:', e2);
+                    }
+                    try {
+                        hmApp.startApp({
+                            appid: 20260901
+                        });
+                        return;
+                    } catch (e3) {
+                        console.log('hmApp.startApp appid only error:', e3);
                     }
                 }
             } catch (err) {
@@ -1018,6 +1029,7 @@
               press_src: '0_empty.png',
               normal_src: '0_empty.png',
               click_func: (button_widget) => {
+                try { resumeWatchface(); } catch (e) {}
                 launchAryaMehr();
               }, // end func
               show_level: hmUI.show_level.ONLY_NORMAL,
@@ -1032,6 +1044,7 @@
               press_src: '0_empty.png',
               normal_src: '0_empty.png',
               click_func: (button_widget) => {
+                try { resumeWatchface(); } catch (e) {}
                 launchAryaMehr();
               },
               show_level: hmUI.show_level.ONLY_NORMAL,
@@ -1073,11 +1086,13 @@
             function time_update(updateHour = false, updateMinute = false) {
               try {
                 let now = new Date();
-                let hour = (timeSensor && typeof timeSensor.hour === 'number') ? timeSensor.hour : now.getHours();
-                let minute = (timeSensor && typeof timeSensor.minute === 'number') ? timeSensor.minute : now.getMinutes();
-                let second = (timeSensor && typeof timeSensor.second === 'number') ? timeSensor.second : now.getSeconds();
-                let format_hour = (timeSensor && typeof timeSensor.format_hour === 'number') ? timeSensor.format_hour : hour;
-                let week = (timeSensor && typeof timeSensor.week === 'number') ? timeSensor.week : (now.getDay() === 0 ? 7 : now.getDay());
+                let second = now.getSeconds();
+                let minute = now.getMinutes();
+                let hour = now.getHours();
+                let is12Hour = timeSensor && typeof timeSensor.format_hour === 'number' && timeSensor.format_hour !== timeSensor.hour;
+                let format_hour = is12Hour ? (hour % 12 || 12) : hour;
+                let jsDay = now.getDay();
+                let week = (timeSensor && typeof timeSensor.week === 'number') ? timeSensor.week : (jsDay === 0 ? 7 : jsDay);
 
                 if (updateHour) {
                   let gYear = (timeSensor && timeSensor.year) || now.getFullYear();
@@ -1207,8 +1222,8 @@
                   normal_timerTimeUpdate = timer.createTimer(0, 1000, (function (option) {
                     try {
                       let now = new Date();
-                      let sec = (timeSensor && typeof timeSensor.second === 'number') ? timeSensor.second : now.getSeconds();
-                      let min = (timeSensor && typeof timeSensor.minute === 'number') ? timeSensor.minute : now.getMinutes();
+                      let sec = now.getSeconds();
+                      let min = now.getMinutes();
                       let updateHour = min === 0 && sec < 2;
                       let updateMinute = sec < 2;
                       time_update(updateHour, updateMinute);
@@ -1228,8 +1243,8 @@
                   idle_timerTimeUpdate = timer.createTimer(0, 1000, (function (option) {
                     try {
                       let now = new Date();
-                      let sec = (timeSensor && typeof timeSensor.second === 'number') ? timeSensor.second : now.getSeconds();
-                      let min = (timeSensor && typeof timeSensor.minute === 'number') ? timeSensor.minute : now.getMinutes();
+                      let sec = now.getSeconds();
+                      let min = now.getMinutes();
                       let updateHour = min === 0 && sec < 2;
                       let updateMinute = sec < 2;
                       time_update(updateHour, updateMinute);
@@ -1246,10 +1261,8 @@
             pauseWatchface = function () {
               console.log('pauseWatchface()');
               try {
-                if (normal_timerTimeUpdate) {
-                  try { timer.stopTimer(normal_timerTimeUpdate); } catch (e) {}
-                  normal_timerTimeUpdate = undefined;
-                }
+                // Keep normal_timerTimeUpdate active so that returning from an app
+                // does not leave the second counter frozen when Zepp OS skips resume_call.
                 if (idle_timerTimeUpdate) {
                   try { timer.stopTimer(idle_timerTimeUpdate); } catch (e) {}
                   idle_timerTimeUpdate = undefined;

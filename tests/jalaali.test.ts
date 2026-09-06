@@ -8,7 +8,7 @@ import {
   getJalaaliDayOfWeek,
   JALAALI_MONTH_NAMES,
   PERSIAN_WEEKDAYS,
-} from "../src/core/jalaali.ts";
+} from "../src/core/jalaali";
 
 test("toJalaali converts known Gregorian dates correctly", () => {
   // Nowruz 1403
