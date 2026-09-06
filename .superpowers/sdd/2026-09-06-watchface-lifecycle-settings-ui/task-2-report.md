@@ -13,3 +13,5 @@ Follow-up: event-list labels and props are emoji-free and native-only.
 Validation: focused UI tests 2/2 pass; full suite 60/60 pass.
 Validation: typecheck, build:ts, and git diff --check pass.
 Resolution: the expanded ownership completed the prior config and event-list handoff.
+Review round: added explicit primary-button, bounded-copy, native-prop, event-row, and delete-callback assertions.
+Validation: focused UI 2/2, full suite 60/60, typecheck, build:ts, and diff-check pass.
