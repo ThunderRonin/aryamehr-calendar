@@ -97,8 +97,8 @@
             "ﻣﻬﺮ", "ﺁﺑﺎﻥ", "ﺁﺫﺭ", "ﺩﯼ", "ﺑﻬﻤﻦ", "ﺍﺳﻔﻨﺪ"
         ];
         const KHORDSHIDI_MONTH_NAMES_EN = [
-            "FARVARDIN", "ORDIBEHESHT", "KHORDAD", "TIR", "MORDAD", "SHAHRIVAR",
-            "MEHR", "ABAN", "AZAR", "DEY", "BAHMAN", "ESFAND"
+            "FAR", "ORD", "KHOR", "TIR", "MORD", "SHAH",
+            "MEHR", "ABAN", "AZAR", "DEY", "BAHM", "ESF"
         ];
         const PERSIAN_DIGITS_MAP = ["۰", "۱", "۲", "۳", "۴", "۵", "۶", "۷", "۸", "۹"];
         function toPersianDigits(n) {
