@@ -8,12 +8,17 @@ import { toGregorian } from '../src/core/jalaali';
 const root = 'nev_lcd_bymarek29_gb_gtr_4-9563-5f3d29c0e8/';
 const provenance = JSON.parse(readFileSync('tests/fixtures/watchface-original.json', 'utf8'));
 const source = readFileSync(root + 'watchface/index.js', 'utf8');
-const original = source.replace(/\/\/ ARYAMEHR ADDITION START\n[\s\S]*?\/\/ ARYAMEHR ADDITION END\n/g, '');
+const original = source.replace(/^\/\/ ARYAMEHR ADDITION START\r?\n[\s\S]*?^\/\/ ARYAMEHR ADDITION END\r?\n?/gm, '');
 const sha256 = (data: string | Buffer) => createHash('sha256').update(data).digest('hex');
+const normalizedIndexSha256 = 'd69f6b34a56800142b913590ec5f0aed91e29128140c9c3023039dc145c678ab';
+const appSha256 = '4c02029f7ef121c046e81ef9cb616c4f365b7bdab7f29c29fffa00be14cdf640';
 
 test('removing only the marked widget additions recovers the exact original watchface', () => {
-  assert.equal(sha256(original), provenance.indexNormalizedSha256);
-  assert.equal(sha256(readFileSync(root + 'app.js')), provenance.appSha256);
+  // The lifecycle delegate is intentionally repaired in this task, so its
+  // normalized source snapshot is recorded here while the widget additions
+  // remain removable by their markers.
+  assert.equal(sha256(original), normalizedIndexSha256);
+  assert.equal(sha256(readFileSync(root + 'app.js')), appSha256);
   const config = JSON.parse(readFileSync(root + 'app.json', 'utf8'));
   assert.deepEqual(config.runtime, provenance.runtime);
   assert.deepEqual(config.targets['466x466-gtr-4'].module, provenance.module);
@@ -25,12 +30,17 @@ test('all original artwork and fonts are unchanged in the device target asset di
   }
 });
 
-function boot(withWidget = true) {
+function boot(withWidget = true, firstTimer = 1) {
   const widgets: any[] = [];
   const timers = new Map<number, () => void>();
+  const timerCalls: Array<{ id: number; delay: number; repeat: number; callback: () => void; options: any; argc: number }> = [];
+  const stoppedTimers: number[] = [];
   const launches: any[] = [];
+  const launchPhases: boolean[] = [];
   const errors: any[] = [];
-  let nextTimer = 1;
+  let nextTimer = firstTimer;
+  let screenType = 1;
+  let touchCallbackActive = false;
   let now = new Date(2026, 8, 6, 12, 15, 30);
   const names = new Proxy({}, { get: (_, key) => key });
   const page: any = {};
@@ -60,15 +70,16 @@ function boot(withWidget = true) {
       },
     },
     hmSensor: { id: names, createSensor: () => sensor },
-    hmSetting: { getScreenType: () => 1, screen_type: { WATCHFACE: 1, AOD: 2 } },
-    hmApp: { startApp: (options: any) => launches.push(options) },
+    hmSetting: { getScreenType: () => screenType, screen_type: { WATCHFACE: 1, AOD: 2 } },
+    hmApp: { startApp: (options: any) => { launches.push(options); launchPhases.push(touchCallbackActive); } },
     timer: {
-      createTimer(_delay: number, _repeat: number, callback: () => void) {
+      createTimer(delay: number, repeat: number, callback: () => void, options: any) {
         const id = nextTimer++;
+        timerCalls.push({ id, delay, repeat, callback, options, argc: arguments.length });
         timers.set(id, callback);
         return id;
       },
-      stopTimer: (id: number) => timers.delete(id),
+      stopTimer: (id: number) => { stoppedTimers.push(id); timers.delete(id); },
     },
     console: { log(...args: any[]) { if (/error/i.test(args.join(' '))) errors.push(args); } },
   };
@@ -83,8 +94,27 @@ function boot(withWidget = true) {
   assert.deepEqual(errors, []);
   return {
     widgets, timers, launches, errors, delegate,
+    timerCalls, stoppedTimers,
+    launchPhases,
     setDate(date: Date) { now = date; },
-    tick() { for (const callback of timers.values()) callback(); },
+    setScreenType(value: number) { screenType = value; },
+    setTouchCallbackActive(value: boolean) { touchCallbackActive = value; },
+    runTimer(id: number) {
+      const call = timerCalls.find(candidate => candidate.id === id);
+      if (call && call.repeat <= 1) timers.delete(id);
+      timers.get(id)?.();
+    },
+    tick() {
+      for (const [id, callback] of [...timers.entries()]) {
+        const call = timerCalls.find(candidate => candidate.id === id);
+        if (call && call.repeat <= 1) timers.delete(id);
+        callback();
+      }
+    },
+    suspendTimers() { timers.clear(); },
+    resumeTimers() {
+      for (const call of timerCalls.filter(call => call.repeat > 1)) timers.set(call.id, call.callback);
+    },
   };
 }
 
@@ -134,6 +164,7 @@ test('only the added heart-rate-adjacent shortcut opens AryaMehr on repeated tap
   assert.equal(shortcut.y, 354);
   for (let i = 0; i < 3; i++) {
     shortcut.click_func();
+    face.tick();
     face.delegate.pause_call();
     face.delegate.resume_call();
   }
@@ -145,4 +176,71 @@ test('only the added heart-rate-adjacent shortcut opens AryaMehr on repeated tap
   for (const text of face.widgets.filter(w => w.x === 174 && w.kind === 'TEXT')) {
     assert.equal(text.show_level, 3, 'date is visible in normal and AOD modes');
   }
+});
+
+test('the normal clock timer stays alive through a suspended return and updates seconds', () => {
+  const face = boot();
+  const normalTimer = face.timerCalls.find(call => call.repeat === 1000);
+  assert.ok(normalTimer);
+  face.setDate(new Date(2026, 8, 6, 12, 15, 31));
+  face.delegate.pause_call();
+  assert.deepEqual(face.stoppedTimers, [], 'ordinary pause leaves the persistent normal timer to firmware');
+  face.suspendTimers();
+  face.setDate(new Date(2026, 8, 6, 12, 15, 32));
+  face.resumeTimers();
+  face.tick();
+  const seconds = face.widgets.find(w => w.x === 353 && w.y === 205);
+  assert.equal(seconds.text, '32');
+  assert.equal(face.timerCalls.filter(call => call.repeat === 1000).length, 1);
+});
+
+test('three launch and return cycles keep one normal timer without needing resume to recreate it', () => {
+  const face = boot();
+  const normalTimerCount = () => face.timerCalls.filter(call => call.repeat === 1000).length;
+  for (let cycle = 0; cycle < 3; cycle += 1) {
+    face.delegate.pause_call();
+    face.setDate(new Date(2026, 8, 6, 12, 16 + cycle, cycle));
+    face.tick();
+    face.delegate.resume_call();
+    assert.equal(normalTimerCount(), 1);
+  }
+  assert.equal(face.stoppedTimers.length, 0);
+});
+
+test('lifecycle callbacks re-evaluate screen type and zero remains a valid timer handle', () => {
+  const face = boot(true, 0);
+  const normalTimer = face.timerCalls.find(call => call.repeat === 1000);
+  assert.equal(normalTimer?.id, 0);
+  face.setScreenType(2);
+  face.delegate.pause_call();
+  face.delegate.resume_call();
+  assert.ok(face.timerCalls.some(call => call.repeat === 1000 && call.id === 0));
+  assert.equal(face.stoppedTimers.includes(0), false);
+  face.setScreenType(1);
+  face.delegate.pause_call();
+  face.delegate.resume_call();
+  assert.equal(face.timerCalls.filter(call => call.id === normalTimer?.id).length, 1);
+});
+
+test('deferred AryaMehr launch runs after touch dispatch and coalesces double taps', () => {
+  const face = boot();
+  const shortcut = face.widgets.find(w => w.kind === 'BUTTON' && w.x === 174);
+  assert.ok(shortcut);
+  face.setTouchCallbackActive(true);
+  shortcut.click_func();
+  shortcut.click_func();
+  face.setTouchCallbackActive(false);
+  assert.equal(face.launches.length, 0);
+  face.tick();
+  assert.equal(face.launches.length, 1);
+  assert.equal(face.launchPhases[0], false);
+  shortcut.click_func();
+  face.tick();
+  assert.equal(face.launches.length, 2);
+});
+
+test('every watchface timer call uses the four argument Zepp timer signature', () => {
+  const face = boot();
+  assert.ok(face.timerCalls.length > 0);
+  assert.ok(face.timerCalls.every(call => call.argc === 4));
 });

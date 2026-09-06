@@ -448,7 +448,6 @@ import { createAryaMehrWidget } from './aryamehr-widget.js';
               show_level: hmUI.show_level.ONLY_NORMAL,
             });
 
-            let screenType = hmSetting.getScreenType();
             normal_time_hour_text_font = hmUI.createWidget(hmUI.widget.TEXT, {
               x: 102,
               y: 205,
@@ -1025,44 +1024,52 @@ import { createAryaMehrWidget } from './aryamehr-widget.js';
 
             };
 
+            function stopIdleTimer() {
+              if (idle_timerTimeUpdate !== undefined && idle_timerTimeUpdate !== null) {
+                timer.stopTimer(idle_timerTimeUpdate);
+                idle_timerTimeUpdate = undefined;
+              }
+            }
+
+            function ensureNormalTimer() {
+              if (normal_timerTimeUpdate === undefined || normal_timerTimeUpdate === null) {
+                normal_timerTimeUpdate = timer.createTimer(0, 1000, (function (option) {
+                  let updateHour = timeSensor.minute == 0 && timeSensor.second < 2;
+                  let updateMinute = timeSensor.second < 2;
+                  time_update(updateHour, updateMinute);
+                }), {});  // end timer
+              }
+            }
+
+            function ensureIdleTimer() {
+              if (idle_timerTimeUpdate === undefined || idle_timerTimeUpdate === null) {
+                idle_timerTimeUpdate = timer.createTimer(0, 1000, (function (option) {
+                  let updateHour = timeSensor.minute == 0 && timeSensor.second < 2;
+                  let updateMinute = timeSensor.second < 2;
+                  time_update(updateHour, updateMinute);
+                }), {});  // end timer
+              }
+            }
+
             const widgetDelegate = hmUI.createWidget(hmUI.widget.WIDGET_DELEGATE, {
               resume_call: (function () {
                 console.log('resume_call()');
                 scale_call();
                 time_update(true, true);
-                if (screenType == hmSetting.screen_type.WATCHFACE) {
-                  if (!normal_timerTimeUpdate) {
-                    normal_timerTimeUpdate = timer.createTimer(0, 1000, (function (option) {
-                      let updateHour = timeSensor.minute == 0 && timeSensor.second < 2;
-                      let updateMinute = timeSensor.second < 2;
-                      time_update(updateHour, updateMinute);
-                    }));  // end timer 
-                  };  // end timer check
-                };  // end screenType
-
-                if (screenType == hmSetting.screen_type.AOD) {
-                  if (!idle_timerTimeUpdate) {
-                    idle_timerTimeUpdate = timer.createTimer(0, 1000, (function (option) {
-                      let updateHour = timeSensor.minute == 0 && timeSensor.second < 2;
-                      let updateMinute = timeSensor.second < 2;
-                      time_update(updateHour, updateMinute);
-                    }));  // end timer 
-                  };  // end timer check
-                };  // end screenType
-
-
+                const currentScreenType = hmSetting.getScreenType();
+                if (currentScreenType == hmSetting.screen_type.WATCHFACE) {
+                  stopIdleTimer();
+                  ensureNormalTimer();
+                } else if (currentScreenType == hmSetting.screen_type.AOD) {
+                  ensureIdleTimer();
+                }
               }),
               pause_call: (function () {
                 console.log('pause_call()');
-                if (normal_timerTimeUpdate) {
-                  timer.stopTimer(normal_timerTimeUpdate);
-                  normal_timerTimeUpdate = undefined;
+                const currentScreenType = hmSetting.getScreenType();
+                if (currentScreenType == hmSetting.screen_type.AOD) {
+                  stopIdleTimer();
                 }
-                if (idle_timerTimeUpdate) {
-                  timer.stopTimer(idle_timerTimeUpdate);
-                  idle_timerTimeUpdate = undefined;
-                }
-
               }),
             });
 

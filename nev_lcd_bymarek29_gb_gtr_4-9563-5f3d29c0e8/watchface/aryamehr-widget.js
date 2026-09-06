@@ -71,6 +71,7 @@ const MONTHS = ['FAR', 'ORD', 'KHOR', 'TIR', 'MORD', 'SHAH',
 
 export function createAryaMehrWidget(timeSensor) {
   const normalAndAod = hmUI.show_level.ONLY_NORMAL | hmUI.show_level.ONLY_AOD;
+  let launchTimer = undefined;
   // The original weather artwork ends at x=168. Three heart-rate digits
   // start near x=250; this small two-line date fits between them.
   const style = {
@@ -88,7 +89,11 @@ export function createAryaMehrWidget(timeSensor) {
     normal_src: '0_empty.png', press_src: '0_empty.png',
     show_level: hmUI.show_level.ONLY_NORMAL,
     click_func: function () {
-      hmApp.startApp({ appid: 20260901, url: 'pages/today/index.page', native: false });
+      if (launchTimer !== undefined && launchTimer !== null) return;
+      launchTimer = timer.createTimer(1, 0, function () {
+        launchTimer = undefined;
+        hmApp.startApp({ appid: 20260901, url: 'pages/today/index.page', native: false });
+      }, {});
     },
   });
   let lastDate = '';
