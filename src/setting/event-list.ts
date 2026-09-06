@@ -25,18 +25,15 @@ export function buildEventListSection(
     if (TextImageRow) {
       eventWidgets.push(
         TextImageRow({
-          label: `📅 ${item.title}`,
+          label: item.title,
           sublabel: itemDateStr,
         })
       );
     } else if (Text) {
       eventWidgets.push(
         Text(
-          {
-            paragraph: true,
-            style: { fontSize: "14px", color: "#222222", direction: "rtl", textAlign: "right" },
-          },
-          [`📅 ${item.title} (${itemDateStr})`]
+          { paragraph: true },
+          [`${item.title} (${itemDateStr})`]
         )
       );
     }
@@ -44,9 +41,8 @@ export function buildEventListSection(
     if (Button) {
       eventWidgets.push(
         Button({
-          label: `❌ حذف رویداد: ${item.title}`,
+          label: `حذف رویداد: ${item.title}`,
           color: "default",
-          style: { marginBottom: "12px" },
           onClick: () => onDeleteClick(item.id),
         })
       );

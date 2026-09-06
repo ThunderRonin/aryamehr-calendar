@@ -63,6 +63,19 @@ test("settings tree presents the feed, sync, manual event, and guide sections in
   const page = createSettingsPageConfig();
   const storage = new SettingsStorage();
   storage.setItem("calendarUrl", "https://example.com/calendar.ics");
+  storage.setItem(
+    "personalEvents",
+    JSON.stringify([
+      {
+        id: "evt-1",
+        title: "جلسه تیم",
+        description: "1405/06/15 10:30",
+        startTimestamp: 0,
+        endTimestamp: 0,
+        isAllDay: false,
+      },
+    ])
+  );
 
   const root = page.build({ settingsStorage: storage }) as TreeNode;
   const sections = root.children ?? [];
@@ -71,6 +84,7 @@ test("settings tree presents the feed, sync, manual event, and guide sections in
     "تقویم ابری",
     "همگام‌سازی",
     "رویداد دستی",
+    "رویدادهای شخصی ثبت‌شده (1)",
     "راهنمای اتصال",
   ]);
 
@@ -79,9 +93,9 @@ test("settings tree presents the feed, sync, manual event, and guide sections in
   assert.equal(sections[0].children?.[1].props.settingsKey, "calendarUrl");
   assert.equal(sections[0].children?.[1].props.value, "https://example.com/calendar.ics");
   assert.equal(sections[1].children?.at(-1)?.type, "Button");
-  assert.equal(sections[2].children?.[0].props.settingsKey, "draftEventTitle");
-  assert.equal(sections[2].children?.[1].props.settingsKey, "draftEventDate");
-  assert.equal(sections[3].children?.length, 5);
+  assert.equal(sections[2].children?.[1].props.settingsKey, "draftEventTitle");
+  assert.equal(sections[2].children?.[2].props.settingsKey, "draftEventDate");
+  assert.equal(sections[4].children?.length, 5);
 });
 
 test("settings controls preserve callbacks and use only native component props", () => {

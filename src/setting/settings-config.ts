@@ -164,7 +164,6 @@ export function createSettingsPageConfig() {
       );
 
       const sections = [
-        buildGuideSection(SectionComponent, TextComponent),
         buildSubscriptionSection(
           SectionComponent,
           TextInputComponent,
@@ -204,6 +203,7 @@ export function createSettingsPageConfig() {
           }
         ),
         ...(eventListSection ? [eventListSection] : []),
+        buildGuideSection(SectionComponent, TextComponent),
       ].filter(Boolean);
 
       if (typeof View !== "undefined") {
