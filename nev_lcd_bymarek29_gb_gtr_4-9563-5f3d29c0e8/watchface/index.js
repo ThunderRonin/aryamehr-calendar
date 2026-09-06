@@ -23,6 +23,7 @@
 
         //dynamic modify start
 
+        
         // === AryaMehr Khorshidi (Solar Hijri) Engine ===
         const JALAALI_BREAKS = [
             -61, 9, 38, 199, 426, 686, 756, 818, 1111, 1181,
@@ -1002,6 +1003,7 @@
               press_src: '0_empty.png',
               normal_src: '0_empty.png',
               click_func: (button_widget) => {
+                hmApp.startApp({url: 'ScheduleCalScreen', native: true });
                 launchAryaMehr();
               }, // end func
               show_level: hmUI.show_level.ONLY_NORMAL,

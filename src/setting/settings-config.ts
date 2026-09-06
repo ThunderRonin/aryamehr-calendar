@@ -9,6 +9,7 @@ import {
   formatSyncTime,
 } from "../core/calendar-sync";
 import {
+  buildHeaderSection,
   buildGuideSection,
   buildSubscriptionSection,
   buildSyncSection,
@@ -99,6 +100,9 @@ export function createSettingsPageConfig() {
     },
 
     triggerSync() {
+      if (this.state.props?.settingsStorage) {
+        this.state.props.settingsStorage.setItem("syncStatus", "در حال همگام‌سازی...");
+        this.state.props.settingsStorage.setItem("syncTrigger", String(Date.now()));
       const storage = this.state.props?.settingsStorage;
       if (!storage) return;
 
@@ -134,6 +138,7 @@ export function createSettingsPageConfig() {
         }
       }
 
+      const syncStatus = storage?.getItem("syncStatus") || "آماده همگام‌سازی";
       const syncStatus =
         storage?.getItem("syncStatus") || "آماده همگام‌سازی (روی دکمه همگام‌سازی بزنید)";
       const lastSyncRaw = storage?.getItem("lastSyncTime") || "";
@@ -153,6 +158,9 @@ export function createSettingsPageConfig() {
       const ButtonComponent = typeof Button !== "undefined" ? Button : null;
 
       const eventListSection = buildEventListSection(
+        View,
+        Text,
+        Button,
         SectionComponent,
         TextComponent,
         ButtonComponent,
@@ -160,6 +168,13 @@ export function createSettingsPageConfig() {
         (id) => this.deletePersonalEvent(id)
       );
 
+      return View(
+        {
+          style: {
+            padding: "16px",
+            backgroundColor: "#f8fafc",
+            minHeight: "100%",
+            fontFamily: "system-ui, -apple-system, sans-serif",
       const sections = [
         buildGuideSection(SectionComponent, TextComponent),
         buildSubscriptionSection(SectionComponent, TextInputComponent, calendarUrl, (val) =>
@@ -184,6 +199,45 @@ export function createSettingsPageConfig() {
             this.state.newTitle = val;
             storage?.setItem("draftEventTitle", val);
           },
+        },
+        [
+          buildHeaderSection(View, Text),
+          buildSubscriptionSection(View, Text, TextInput, calendarUrl, (val) =>
+            this.setCalendarUrl(val)
+          ),
+          buildSyncSection(
+            View,
+            Text,
+            Button,
+            syncStatus,
+            lastSyncFormatted,
+            syncedCount,
+            () => this.triggerSync()
+          ),
+          buildQuickAddSection(
+            View,
+            Text,
+            TextInput,
+            Button,
+            draftTitle,
+            draftDate,
+            (val) => {
+              this.state.newTitle = val;
+              storage?.setItem("draftEventTitle", val);
+            },
+            (val) => {
+              this.state.newDate = val;
+              storage?.setItem("draftEventDate", val);
+            },
+            () => {
+              const title = storage?.getItem("draftEventTitle") || this.state.newTitle;
+              const date = storage?.getItem("draftEventDate") || this.state.newDate;
+              this.addPersonalEvent(title, date);
+            }
+          ),
+          ...(eventListSection ? [eventListSection] : []),
+        ]
+      );
           (val) => {
             this.state.newDate = val;
             storage?.setItem("draftEventDate", val);

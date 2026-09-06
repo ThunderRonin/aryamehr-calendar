@@ -74,12 +74,15 @@ export async function syncAndFetchCalendarEvents(
         const isValidUrl = /^https?:\/\/.+/i.test(targetUrl);
         if (!isValidUrl) {
           fetchFailed = true;
+          fetchErrorMsg = "آدرس اینترنتی فید تقویم نامعتبر است";
           fetchErrorMsg = "فرمت آدرس فید نامعتبر است (باید با https:// یا webcal:// شروع شود)";
         } else if (!fetchFn) {
           fetchFailed = true;
+          fetchErrorMsg = "سرویس اینترنت در دسترس نیست";
           fetchErrorMsg = "سرویس اتصال به اینترنت در دسترس نیست";
         } else {
           try {
+            if (storage) storage.setItem("syncStatus", "در حال دانلود فید تقویم...");
             if (storage) storage.setItem("syncStatus", "در حال دانلود فید تقویم از سرور...");
             const res = await fetchFn({
               url: targetUrl,
@@ -90,6 +93,7 @@ export async function syncAndFetchCalendarEvents(
             const status = res.status ?? res.statusCode;
             if (status && (status < 200 || status >= 300)) {
               fetchFailed = true;
+              fetchErrorMsg = `HTTP ${status}`;
               fetchErrorMsg = `خطای سرور تقویم (کد وضعیت HTTP ${status})`;
             } else {
               let bodyStr = "";
@@ -102,6 +106,7 @@ export async function syncAndFetchCalendarEvents(
             }
           } catch (fetchErr: any) {
             fetchFailed = true;
+            fetchErrorMsg = fetchErr?.message || "خطای ارتباط اینترنتی";
             fetchErrorMsg = fetchErr?.message || "خطای ارتباط با سرور تقویم اینترنتی";
           }
         }
@@ -119,9 +124,13 @@ export async function syncAndFetchCalendarEvents(
         storage.setItem("syncedEventCount", String(allEvents.length));
         if (fetchFailed) {
           storage.setItem("syncStatus", `خطا در دریافت تقویم: ${fetchErrorMsg}`);
+        } else {
         } else if (targetUrl) {
           storage.setItem(
             "syncStatus",
+            targetUrl
+              ? "همگام‌سازی تقویم اینترنتی و رویدادهای شخصی با موفقیت انجام شد"
+              : "همگام‌سازی رویدادهای شخصی با موفقیت انجام شد"
             `همگام‌سازی تقویم ابری با موفقیت انجام شد (${allEvents.length} رویداد با ساعت همگام شد).`
           );
         } else if (personalEvents.length > 0) {
