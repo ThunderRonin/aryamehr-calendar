@@ -107,17 +107,21 @@
         function launchAryaMehr() {
             try {
                 if (typeof hmApp !== 'undefined' && hmApp.startApp) {
-                    hmApp.startApp({
-                        appid: 20260901,
-                        url: 'pages/today/index.page',
-                        native: false
-                    });
+                    try {
+                        hmApp.startApp({
+                            appid: 20260901,
+                            url: 'pages/today/index.page'
+                        });
+                    } catch (e1) {
+                        hmApp.startApp({ appid: 20260901 });
+                    }
                 }
             } catch (err) {
+                console.log('launchAryaMehr error:', err);
                 try {
                     hmApp.startApp({ appid: 20260901 });
-                } catch (e) {
-                    console.log('launchAryaMehr error:', e);
+                } catch (e2) {
+                    console.log('launchAryaMehr fallback error:', e2);
                 }
             }
         }
@@ -924,14 +928,8 @@
               show_level: hmUI.show_level.ONLY_NORMAL,
             });
 
-            normal_moon_jumpable_img_click = hmUI.createWidget(hmUI.widget.IMG_CLICK, {
-              x: 92,
-              y: 76,
-              w: 58,
-              h: 49,
-              type: hmUI.data_type.MOON_CURRENT,
-              show_level: hmUI.show_level.ONLY_NORMAL,
-            });
+            // normal_moon_jumpable_img_click removed to prevent touch collision with Button_AryaMehr_Date
+            normal_moon_jumpable_img_click = '';
 
             console.log('Watch_Face.Buttons');
             Button_1 = hmUI.createWidget(hmUI.widget.BUTTON, {
@@ -1009,7 +1007,6 @@
               press_src: '0_empty.png',
               normal_src: '0_empty.png',
               click_func: (button_widget) => {
-                hmApp.startApp({url: 'ScheduleCalScreen', native: true });
                 launchAryaMehr();
               }, // end func
               show_level: hmUI.show_level.ONLY_NORMAL,
@@ -1018,7 +1015,7 @@
             Button_AryaMehr_Date = hmUI.createWidget(hmUI.widget.BUTTON, {
               x: 70,
               y: 75,
-              w: 200,
+              w: 150,
               h: 44,
               text: '',
               press_src: '0_empty.png',
@@ -1063,155 +1060,168 @@
 
             //#region time_update
             function time_update(updateHour = false, updateMinute = false) {
-              console.log('time_update()');
-              let hour = timeSensor.hour;
-              let minute = timeSensor.minute;
-              let second = timeSensor.second;
-              let format_hour = timeSensor.format_hour;
+              try {
+                let hour = timeSensor.hour;
+                let minute = timeSensor.minute;
+                let second = timeSensor.second;
+                let format_hour = timeSensor.format_hour;
 
-              console.log('month font');
-              if (updateHour) {
-                let gYear = timeSensor.year || (new Date()).getFullYear();
-                let gMonth = timeSensor.month || ((new Date()).getMonth() + 1);
-                let gDay = timeSensor.day || (new Date()).getDate();
-                let jDate = toJalaali(gYear, gMonth, gDay);
+                if (updateHour) {
+                  let gYear = timeSensor.year || (new Date()).getFullYear();
+                  let gMonth = timeSensor.month || ((new Date()).getMonth() + 1);
+                  let gDay = timeSensor.day || (new Date()).getDate();
+                  let jDate = toJalaali(gYear, gMonth, gDay);
 
-                let normal_monthStr = jDate.jm.toString().padStart(2, '0');
-                normal_month_text_font.setProperty(hmUI.prop.TEXT, normal_monthStr );
+                  let normal_monthStr = jDate.jm.toString().padStart(2, '0');
+                  if (normal_month_text_font) normal_month_text_font.setProperty(hmUI.prop.TEXT, normal_monthStr);
 
-                let normal_dayStr = jDate.jd.toString().padStart(2, '0');
-                normal_day_text_font.setProperty(hmUI.prop.TEXT, normal_dayStr );
+                  let normal_dayStr = jDate.jd.toString().padStart(2, '0');
+                  if (normal_day_text_font) normal_day_text_font.setProperty(hmUI.prop.TEXT, normal_dayStr);
 
-                let pMonthName = KHORDSHIDI_MONTH_NAMES_EN[jDate.jm - 1] || '';
-                let khorshidiFull = jDate.jd + ' ' + pMonthName;
-                if (normal_aryamehr_khorshidi_text) {
-                  normal_aryamehr_khorshidi_text.setProperty(hmUI.prop.TEXT, khorshidiFull);
+                  let pMonthName = KHORDSHIDI_MONTH_NAMES_EN[jDate.jm - 1] || '';
+                  let khorshidiFull = jDate.jd + ' ' + pMonthName;
+                  if (normal_aryamehr_khorshidi_text) {
+                    normal_aryamehr_khorshidi_text.setProperty(hmUI.prop.TEXT, khorshidiFull);
+                  }
                 }
-              };
 
-              console.log('day of week font');
-              if (updateHour) {
-                let normal_DOW_Str = normal_DOW_Array[timeSensor.week-1];
-                normal_dow_text_font.setProperty(hmUI.prop.TEXT, normal_DOW_Str );
-                if (timeSensor.week >= 6) normal_dow_text_font.setProperty(hmUI.prop.COLOR, 0xFF00DE00);
-                else normal_dow_text_font.setProperty(hmUI.prop.COLOR, 0xFF969696);
-              };
-
-              console.log('hour font');
-              if (updateHour) {
-                let normal_hourStr = format_hour.toString();
-                normal_hourStr = normal_hourStr.padStart(2, '0');
-                normal_time_hour_text_font.setProperty(hmUI.prop.TEXT, normal_hourStr );
-              };
-
-              console.log('minute font');
-              if (updateMinute) {
-                let normal_minuteStr = minute.toString();
-                normal_minuteStr = normal_minuteStr.padStart(2, '0');
-                normal_time_minute_text_font.setProperty(hmUI.prop.TEXT, normal_minuteStr );
-              };
-
-              console.log('second font');
-                let normal_secondStr = second.toString();
-                normal_secondStr = normal_secondStr.padStart(2, '0');
-                normal_time_second_text_font.setProperty(hmUI.prop.TEXT, normal_secondStr );
-              console.log('month font');
-              if (updateHour) {
-                let gYear = timeSensor.year || (new Date()).getFullYear();
-                let gMonth = timeSensor.month || ((new Date()).getMonth() + 1);
-                let gDay = timeSensor.day || (new Date()).getDate();
-                let jDate = toJalaali(gYear, gMonth, gDay);
-
-                let idle_monthStr = jDate.jm.toString().padStart(2, '0');
-                idle_month_text_font.setProperty(hmUI.prop.TEXT, idle_monthStr );
-
-                let idle_dayStr = jDate.jd.toString().padStart(2, '0');
-                idle_day_text_font.setProperty(hmUI.prop.TEXT, idle_dayStr );
-
-                let pMonthName = KHORDSHIDI_MONTH_NAMES_EN[jDate.jm - 1] || '';
-                let khorshidiFull = jDate.jd + ' ' + pMonthName;
-                if (idle_aryamehr_khorshidi_text) {
-                  idle_aryamehr_khorshidi_text.setProperty(hmUI.prop.TEXT, khorshidiFull);
+                if (updateHour) {
+                  let normal_DOW_Str = normal_DOW_Array[timeSensor.week - 1] || '';
+                  if (normal_dow_text_font) {
+                    normal_dow_text_font.setProperty(hmUI.prop.TEXT, normal_DOW_Str);
+                    if (timeSensor.week >= 6) normal_dow_text_font.setProperty(hmUI.prop.COLOR, 0xFF00DE00);
+                    else normal_dow_text_font.setProperty(hmUI.prop.COLOR, 0xFF969696);
+                  }
                 }
-              };
 
-              console.log('day of week font');
-              if (updateHour) {
-                let idle_DOW_Str = idle_DOW_Array[timeSensor.week-1];
-                idle_dow_text_font.setProperty(hmUI.prop.TEXT, idle_DOW_Str );
-                if (timeSensor.week >= 6) idle_dow_text_font.setProperty(hmUI.prop.COLOR, 0xFF00DE00);
-                else idle_dow_text_font.setProperty(hmUI.prop.COLOR, 0xFF969696);
-              };
+                if (updateHour) {
+                  let normal_hourStr = (format_hour || 0).toString().padStart(2, '0');
+                  if (normal_time_hour_text_font) normal_time_hour_text_font.setProperty(hmUI.prop.TEXT, normal_hourStr);
+                }
 
-              console.log('hour font');
-              if (updateHour) {
-                let idle_hourStr = format_hour.toString();
-                idle_hourStr = idle_hourStr.padStart(2, '0');
-                idle_time_hour_text_font.setProperty(hmUI.prop.TEXT, idle_hourStr );
-              };
+                if (updateMinute) {
+                  let normal_minuteStr = (minute || 0).toString().padStart(2, '0');
+                  if (normal_time_minute_text_font) normal_time_minute_text_font.setProperty(hmUI.prop.TEXT, normal_minuteStr);
+                }
 
-              console.log('minute font');
-              if (updateMinute) {
-                let idle_minuteStr = minute.toString();
-                idle_minuteStr = idle_minuteStr.padStart(2, '0');
-                idle_time_minute_text_font.setProperty(hmUI.prop.TEXT, idle_minuteStr );
-              };
+                let normal_secondStr = (second || 0).toString().padStart(2, '0');
+                if (normal_time_second_text_font) normal_time_second_text_font.setProperty(hmUI.prop.TEXT, normal_secondStr);
 
-            };
+                if (updateHour) {
+                  let gYear = timeSensor.year || (new Date()).getFullYear();
+                  let gMonth = timeSensor.month || ((new Date()).getMonth() + 1);
+                  let gDay = timeSensor.day || (new Date()).getDate();
+                  let jDate = toJalaali(gYear, gMonth, gDay);
+
+                  let idle_monthStr = jDate.jm.toString().padStart(2, '0');
+                  if (idle_month_text_font) idle_month_text_font.setProperty(hmUI.prop.TEXT, idle_monthStr);
+
+                  let idle_dayStr = jDate.jd.toString().padStart(2, '0');
+                  if (idle_day_text_font) idle_day_text_font.setProperty(hmUI.prop.TEXT, idle_dayStr);
+
+                  let pMonthName = KHORDSHIDI_MONTH_NAMES_EN[jDate.jm - 1] || '';
+                  let khorshidiFull = jDate.jd + ' ' + pMonthName;
+                  if (idle_aryamehr_khorshidi_text) {
+                    idle_aryamehr_khorshidi_text.setProperty(hmUI.prop.TEXT, khorshidiFull);
+                  }
+                }
+
+                if (updateHour) {
+                  let idle_DOW_Str = idle_DOW_Array[timeSensor.week - 1] || '';
+                  if (idle_dow_text_font) {
+                    idle_dow_text_font.setProperty(hmUI.prop.TEXT, idle_DOW_Str);
+                    if (timeSensor.week >= 6) idle_dow_text_font.setProperty(hmUI.prop.COLOR, 0xFF00DE00);
+                    else idle_dow_text_font.setProperty(hmUI.prop.COLOR, 0xFF969696);
+                  }
+                }
+
+                if (updateHour) {
+                  let idle_hourStr = (format_hour || 0).toString().padStart(2, '0');
+                  if (idle_time_hour_text_font) idle_time_hour_text_font.setProperty(hmUI.prop.TEXT, idle_hourStr);
+                }
+
+                if (updateMinute) {
+                  let idle_minuteStr = (minute || 0).toString().padStart(2, '0');
+                  if (idle_time_minute_text_font) idle_time_minute_text_font.setProperty(hmUI.prop.TEXT, idle_minuteStr);
+                }
+              } catch (e) {
+                console.log('time_update error:', e);
+              }
+            }
 
             //#endregion
             function scale_call() {
-              console.log('scale_call()');
-
-              console.log('Weather city name');
-              let weatherData = weatherSensor.getForecastWeather();
-              let normal_cityNameStr = weatherData.cityName;
-              normal_city_name_text.setProperty(hmUI.prop.TEXT, normal_cityNameStr);
-
-              console.log('Weather city name');
-              let idle_cityNameStr = weatherData.cityName;
-              idle_city_name_text.setProperty(hmUI.prop.TEXT, idle_cityNameStr);
-
-            };
+              try {
+                if (typeof weatherSensor !== 'undefined' && weatherSensor && weatherSensor.getForecastWeather) {
+                  let weatherData = weatherSensor.getForecastWeather();
+                  if (weatherData && weatherData.cityName) {
+                    if (normal_city_name_text) normal_city_name_text.setProperty(hmUI.prop.TEXT, weatherData.cityName);
+                    if (idle_city_name_text) idle_city_name_text.setProperty(hmUI.prop.TEXT, weatherData.cityName);
+                  }
+                }
+              } catch (e) {
+                console.log('scale_call error:', e);
+              }
+            }
 
             const widgetDelegate = hmUI.createWidget(hmUI.widget.WIDGET_DELEGATE, {
               resume_call: (function () {
                 console.log('resume_call()');
-                scale_call();
-                time_update(true, true);
-                if (screenType == hmSetting.screen_type.WATCHFACE) {
-                  if (!normal_timerTimeUpdate) {
-                    normal_timerTimeUpdate = timer.createTimer(0, 1000, (function (option) {
-                      let updateHour = timeSensor.minute == 0 && timeSensor.second < 2;
-                      let updateMinute = timeSensor.second < 2;
-                      time_update(updateHour, updateMinute);
-                    }));  // end timer 
-                  };  // end timer check
-                };  // end screenType
+                try {
+                  scale_call();
+                } catch (e) {
+                  console.log('resume_call scale_call error:', e);
+                }
+                try {
+                  time_update(true, true);
+                } catch (e) {
+                  console.log('resume_call time_update error:', e);
+                }
 
-                if (screenType == hmSetting.screen_type.AOD) {
-                  if (!idle_timerTimeUpdate) {
-                    idle_timerTimeUpdate = timer.createTimer(0, 1000, (function (option) {
-                      let updateHour = timeSensor.minute == 0 && timeSensor.second < 2;
-                      let updateMinute = timeSensor.second < 2;
-                      time_update(updateHour, updateMinute);
-                    }));  // end timer 
-                  };  // end timer check
-                };  // end screenType
+                try {
+                  const currentScreenType = (typeof hmSetting !== 'undefined' && hmSetting.getScreenType)
+                    ? hmSetting.getScreenType()
+                    : hmSetting.screen_type.WATCHFACE;
 
+                  if (currentScreenType == hmSetting.screen_type.WATCHFACE) {
+                    if (!normal_timerTimeUpdate) {
+                      normal_timerTimeUpdate = timer.createTimer(0, 1000, (function (option) {
+                        try {
+                          let updateHour = timeSensor.minute == 0 && timeSensor.second < 2;
+                          let updateMinute = timeSensor.second < 2;
+                          time_update(updateHour, updateMinute);
+                        } catch (err) {
+                          console.log('normal timer tick error:', err);
+                        }
+                      }));
+                    }
+                  }
 
+                  if (currentScreenType == hmSetting.screen_type.AOD) {
+                    if (!idle_timerTimeUpdate) {
+                      idle_timerTimeUpdate = timer.createTimer(0, 1000, (function (option) {
+                        try {
+                          let updateHour = timeSensor.minute == 0 && timeSensor.second < 2;
+                          let updateMinute = timeSensor.second < 2;
+                          time_update(updateHour, updateMinute);
+                        } catch (err) {
+                          console.log('idle timer tick error:', err);
+                        }
+                      }));
+                    }
+                  }
+                } catch (e) {
+                  console.log('resume_call timer error:', e);
+                }
               }),
               pause_call: (function () {
                 console.log('pause_call()');
-                if (normal_timerTimeUpdate) {
-                  timer.stopTimer(normal_timerTimeUpdate);
-                  normal_timerTimeUpdate = undefined;
-                }
+                // Keep normal_timerTimeUpdate active so that returning from an app
+                // does not leave the second counter frozen when Zepp OS skips resume_call.
                 if (idle_timerTimeUpdate) {
-                  timer.stopTimer(idle_timerTimeUpdate);
+                  try { timer.stopTimer(idle_timerTimeUpdate); } catch (e) {}
                   idle_timerTimeUpdate = undefined;
                 }
-
               }),
             });
 

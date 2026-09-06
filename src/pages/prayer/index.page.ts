@@ -20,9 +20,7 @@ let currentCityIndex = 0;
 let currentMode: "gahs" | "islamic" = "gahs";
 
 let modeButtonWidget: any = null;
-let modeTextWidget: any = null;
 let cityButtonWidget: any = null;
-let cityTextWidget: any = null;
 let titleWidget: any = null;
 let displayWidget: any = null;
 
@@ -33,21 +31,21 @@ function updateDisplay() {
   const gm = now.getMonth() + 1;
   const gd = now.getDate();
 
-  // Mode Button Label (Text Overlay)
-  if (modeTextWidget) {
+  // Mode Button Label
+  if (modeButtonWidget) {
     const modeLabel =
       currentMode === "gahs"
         ? "حالت: گاه‌های زرتشتی (لمس: شرعی)"
         : "حالت: اوقات شرعی (لمس: گاه‌ها)";
-    modeTextWidget.setProperty(prop.MORE, {
+    modeButtonWidget.setProperty(prop.MORE, {
       text: reshape(modeLabel),
       color: currentMode === "gahs" ? COLORS.GOLD : COLORS.AMBER,
     });
   }
 
-  // City Button Label (Text Overlay)
-  if (cityTextWidget) {
-    cityTextWidget.setProperty(prop.MORE, {
+  // City Button Label
+  if (cityButtonWidget) {
+    cityButtonWidget.setProperty(prop.MORE, {
       text: reshape(`شهر: ${city.name} (لمس برای تغییر)`),
       color: COLORS.AMBER,
     });
@@ -133,7 +131,7 @@ Page({
       text: reshape("گاه‌های پنج‌گانه زرتشتی"),
     });
 
-    // 2. Mode Toggle: Clickable Pill Background + Text Overlay (y = 56, w = 320, h = 38)
+    // 2. Mode Toggle Button (y = 56, w = 320, h = 38)
     modeButtonWidget = createWidget(widget.BUTTON, {
       x: px(73),
       y: px(56),
@@ -142,26 +140,16 @@ Page({
       radius: px(19),
       normal_color: COLORS.CARD_BG,
       press_color: COLORS.DARK_GRAY,
-      text: "",
+      color: COLORS.GOLD,
+      text_size: px(19),
+      text: reshape("حالت: گاه‌های زرتشتی (لمس: شرعی)"),
       click_func: () => {
         currentMode = currentMode === "gahs" ? "islamic" : "gahs";
         updateDisplay();
       },
     });
 
-    modeTextWidget = createWidget(widget.TEXT, {
-      x: px(73),
-      y: px(56),
-      w: px(320),
-      h: px(38),
-      color: COLORS.GOLD,
-      text_size: px(19),
-      align_h: align.CENTER_H,
-      align_v: align.CENTER_V,
-      text: reshape("حالت: گاه‌های زرتشتی (لمس: شرعی)"),
-    });
-
-    // 3. City Selector: Clickable Pill Background + Text Overlay (y = 98, w = 280, h = 36)
+    // 3. City Selector Button (y = 98, w = 280, h = 36)
     cityButtonWidget = createWidget(widget.BUTTON, {
       x: px(93),
       y: px(98),
@@ -170,23 +158,13 @@ Page({
       radius: px(18),
       normal_color: COLORS.CARD_BG,
       press_color: COLORS.DARK_GRAY,
-      text: "",
+      color: COLORS.AMBER,
+      text_size: px(19),
+      text: reshape(`شهر: ${MAJOR_CITIES[currentCityIndex].name} (لمس برای تغییر)`),
       click_func: () => {
         currentCityIndex = (currentCityIndex + 1) % MAJOR_CITIES.length;
         updateDisplay();
       },
-    });
-
-    cityTextWidget = createWidget(widget.TEXT, {
-      x: px(93),
-      y: px(98),
-      w: px(280),
-      h: px(36),
-      color: COLORS.AMBER,
-      text_size: px(19),
-      align_h: align.CENTER_H,
-      align_v: align.CENTER_V,
-      text: reshape(`شهر: ${MAJOR_CITIES[currentCityIndex].name} (لمس برای تغییر)`),
     });
 
     // 4. Content Display Box (y = 140, h = 248)
