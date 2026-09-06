@@ -46,6 +46,7 @@ function boot(withWidget = true, firstTimer = 1) {
   const stoppedTimers: number[] = [];
   const launches: any[] = [];
   const launchPhases: boolean[] = [];
+  const events: string[] = [];
   const errors: any[] = [];
   let nextTimer = firstTimer;
   let screenType = 1;
@@ -80,7 +81,7 @@ function boot(withWidget = true, firstTimer = 1) {
     },
     hmSensor: { id: names, createSensor: () => sensor },
     hmSetting: { getScreenType: () => screenType, screen_type: { WATCHFACE: 1, AOD: 2 } },
-    hmApp: { startApp: (options: any) => { launches.push(options); launchPhases.push(touchCallbackActive); } },
+    hmApp: { startApp: (options: any) => { events.push('startApp'); launches.push(options); launchPhases.push(touchCallbackActive); } },
     timer: {
       createTimer(delay: number, repeat: number, callback: () => void, options: any) {
         const id = nextTimer++;
@@ -88,7 +89,7 @@ function boot(withWidget = true, firstTimer = 1) {
         timers.set(id, callback);
         return id;
       },
-      stopTimer: (id: number) => { stoppedTimers.push(id); timers.delete(id); },
+      stopTimer: (id: number) => { events.push(`stopTimer:${id}`); stoppedTimers.push(id); timers.delete(id); },
     },
     console: { log(...args: any[]) { if (/error/i.test(args.join(' '))) errors.push(args); } },
   };
@@ -104,19 +105,16 @@ function boot(withWidget = true, firstTimer = 1) {
   return {
     widgets, timers, launches, errors, delegate,
     timerCalls, stoppedTimers,
-    launchPhases,
+    launchPhases, events,
     setDate(date: Date) { now = date; },
     setScreenType(value: number) { screenType = value; },
+    setNextTimer(value: number) { nextTimer = value; },
     setTouchCallbackActive(value: boolean) { touchCallbackActive = value; },
     runTimer(id: number) {
-      const call = timerCalls.find(candidate => candidate.id === id);
-      if (call && call.repeat <= 1) timers.delete(id);
       timers.get(id)?.();
     },
     tick() {
       for (const [id, callback] of [...timers.entries()]) {
-        const call = timerCalls.find(candidate => candidate.id === id);
-        if (call && call.repeat <= 1) timers.delete(id);
         callback();
       }
     },
@@ -178,6 +176,7 @@ test('only the added heart-rate-adjacent shortcut opens AryaMehr on repeated tap
     face.delegate.resume_call();
   }
   assert.equal(face.launches.length, 3);
+  assert.equal(face.stoppedTimers.length, 3, 'each deferred launch timer stops itself');
   for (const call of face.launches) {
     assert.equal(call.appid, 20260901);
     assert.equal(call.url, 'pages/today/index.page');
@@ -243,9 +242,17 @@ test('deferred AryaMehr launch runs after touch dispatch and coalesces double ta
   face.tick();
   assert.equal(face.launches.length, 1);
   assert.equal(face.launchPhases[0], false);
+  assert.deepEqual(face.events.slice(-2), ['stopTimer:2', 'startApp']);
   shortcut.click_func();
   face.tick();
   assert.equal(face.launches.length, 2);
+  assert.deepEqual(face.events.slice(-2), ['stopTimer:3', 'startApp']);
+
+  face.setNextTimer(0);
+  shortcut.click_func();
+  face.tick();
+  assert.equal(face.launches.length, 3);
+  assert.deepEqual(face.events.slice(-2), ['stopTimer:0', 'startApp']);
 });
 
 test('every watchface timer call uses the four argument Zepp timer signature', () => {
@@ -261,6 +268,6 @@ test('every watchface timer call uses the four argument Zepp timer signature', (
 
   const calls = [...normal.timerCalls, ...aod.timerCalls];
   assert.ok(calls.some(call => call.repeat === 1000), 'normal and AOD clock timers execute');
-  assert.ok(calls.some(call => call.repeat === 0), 'deferred one-shot launch timer executes');
+  assert.ok(calls.some(call => call.repeat === Number.MAX_SAFE_INTEGER), 'deferred long-repeat launch timer executes');
   assert.ok(calls.every(call => call.argc === 4));
 });

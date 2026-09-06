@@ -90,8 +90,10 @@ export function createAryaMehrWidget(timeSensor) {
     show_level: hmUI.show_level.ONLY_NORMAL,
     click_func: function () {
       if (launchTimer !== undefined && launchTimer !== null) return;
-      launchTimer = timer.createTimer(1, 0, function () {
+      launchTimer = timer.createTimer(1, Number.MAX_SAFE_INTEGER, function () {
+        const timerHandle = launchTimer;
         launchTimer = undefined;
+        if (timerHandle !== undefined && timerHandle !== null) timer.stopTimer(timerHandle);
         hmApp.startApp({ appid: 20260901, url: 'pages/today/index.page', native: false });
       }, {});
     },
