@@ -1,6 +1,6 @@
 # Original watchface + AryaMehr shortcut
 
-Watchface version **1.0.2** restores the user-supplied
+Watchface version **1.0.4** restores the user-supplied
 `nev_lcd_bymarek29_gb_gtr_4-9563-5f3d29c0e8.zip` and adds a compact Solar Hijri
 date/shortcut to the left of the heart-rate number, above the city name.
 
