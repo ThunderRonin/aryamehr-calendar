@@ -106,25 +106,36 @@
         }
         function launchAryaMehr() {
             try {
+                console.log('launchAryaMehr invoked');
                 if (typeof hmApp !== 'undefined' && hmApp.startApp) {
                     try {
                         hmApp.startApp({
                             appid: 20260901,
-                            url: 'pages/today/index.page'
+                            appId: 20260901,
+                            url: 'pages/today/index.page',
+                            native: false
                         });
+                        return;
                     } catch (e1) {
-                        hmApp.startApp({ appid: 20260901 });
+                        console.log('hmApp.startApp with url error:', e1);
+                    }
+                    try {
+                        hmApp.startApp({
+                            appid: 20260901,
+                            appId: 20260901,
+                            native: false
+                        });
+                        return;
+                    } catch (e2) {
+                        console.log('hmApp.startApp appid only error:', e2);
                     }
                 }
             } catch (err) {
                 console.log('launchAryaMehr error:', err);
-                try {
-                    hmApp.startApp({ appid: 20260901 });
-                } catch (e2) {
-                    console.log('launchAryaMehr fallback error:', e2);
-                }
             }
         }
+        let resumeWatchface = function () {};
+        let pauseWatchface = function () {};
         let normal_aryamehr_khorshidi_text = '';
         let idle_aryamehr_khorshidi_text = '';
         let Button_AryaMehr_Date = '';
@@ -1061,15 +1072,17 @@
             //#region time_update
             function time_update(updateHour = false, updateMinute = false) {
               try {
-                let hour = timeSensor.hour;
-                let minute = timeSensor.minute;
-                let second = timeSensor.second;
-                let format_hour = timeSensor.format_hour;
+                let now = new Date();
+                let hour = (timeSensor && typeof timeSensor.hour === 'number') ? timeSensor.hour : now.getHours();
+                let minute = (timeSensor && typeof timeSensor.minute === 'number') ? timeSensor.minute : now.getMinutes();
+                let second = (timeSensor && typeof timeSensor.second === 'number') ? timeSensor.second : now.getSeconds();
+                let format_hour = (timeSensor && typeof timeSensor.format_hour === 'number') ? timeSensor.format_hour : hour;
+                let week = (timeSensor && typeof timeSensor.week === 'number') ? timeSensor.week : (now.getDay() === 0 ? 7 : now.getDay());
 
                 if (updateHour) {
-                  let gYear = timeSensor.year || (new Date()).getFullYear();
-                  let gMonth = timeSensor.month || ((new Date()).getMonth() + 1);
-                  let gDay = timeSensor.day || (new Date()).getDate();
+                  let gYear = (timeSensor && timeSensor.year) || now.getFullYear();
+                  let gMonth = (timeSensor && timeSensor.month) || (now.getMonth() + 1);
+                  let gDay = (timeSensor && timeSensor.day) || now.getDate();
                   let jDate = toJalaali(gYear, gMonth, gDay);
 
                   let normal_monthStr = jDate.jm.toString().padStart(2, '0');
@@ -1086,10 +1099,10 @@
                 }
 
                 if (updateHour) {
-                  let normal_DOW_Str = normal_DOW_Array[timeSensor.week - 1] || '';
+                  let normal_DOW_Str = normal_DOW_Array[week - 1] || '';
                   if (normal_dow_text_font) {
                     normal_dow_text_font.setProperty(hmUI.prop.TEXT, normal_DOW_Str);
-                    if (timeSensor.week >= 6) normal_dow_text_font.setProperty(hmUI.prop.COLOR, 0xFF00DE00);
+                    if (week >= 6) normal_dow_text_font.setProperty(hmUI.prop.COLOR, 0xFF00DE00);
                     else normal_dow_text_font.setProperty(hmUI.prop.COLOR, 0xFF969696);
                   }
                 }
@@ -1108,9 +1121,9 @@
                 if (normal_time_second_text_font) normal_time_second_text_font.setProperty(hmUI.prop.TEXT, normal_secondStr);
 
                 if (updateHour) {
-                  let gYear = timeSensor.year || (new Date()).getFullYear();
-                  let gMonth = timeSensor.month || ((new Date()).getMonth() + 1);
-                  let gDay = timeSensor.day || (new Date()).getDate();
+                  let gYear = (timeSensor && timeSensor.year) || now.getFullYear();
+                  let gMonth = (timeSensor && timeSensor.month) || (now.getMonth() + 1);
+                  let gDay = (timeSensor && timeSensor.day) || now.getDate();
                   let jDate = toJalaali(gYear, gMonth, gDay);
 
                   let idle_monthStr = jDate.jm.toString().padStart(2, '0');
@@ -1127,10 +1140,10 @@
                 }
 
                 if (updateHour) {
-                  let idle_DOW_Str = idle_DOW_Array[timeSensor.week - 1] || '';
+                  let idle_DOW_Str = idle_DOW_Array[week - 1] || '';
                   if (idle_dow_text_font) {
                     idle_dow_text_font.setProperty(hmUI.prop.TEXT, idle_DOW_Str);
-                    if (timeSensor.week >= 6) idle_dow_text_font.setProperty(hmUI.prop.COLOR, 0xFF00DE00);
+                    if (week >= 6) idle_dow_text_font.setProperty(hmUI.prop.COLOR, 0xFF00DE00);
                     else idle_dow_text_font.setProperty(hmUI.prop.COLOR, 0xFF969696);
                   }
                 }
@@ -1164,66 +1177,100 @@
               }
             }
 
-            const widgetDelegate = hmUI.createWidget(hmUI.widget.WIDGET_DELEGATE, {
-              resume_call: (function () {
-                console.log('resume_call()');
-                try {
-                  scale_call();
-                } catch (e) {
-                  console.log('resume_call scale_call error:', e);
-                }
-                try {
-                  time_update(true, true);
-                } catch (e) {
-                  console.log('resume_call time_update error:', e);
-                }
+            resumeWatchface = function () {
+              console.log('resumeWatchface()');
+              try {
+                scale_call();
+              } catch (e) {
+                console.log('resumeWatchface scale_call error:', e);
+              }
+              try {
+                time_update(true, true);
+              } catch (e) {
+                console.log('resumeWatchface time_update error:', e);
+              }
 
-                try {
-                  const currentScreenType = (typeof hmSetting !== 'undefined' && hmSetting.getScreenType)
-                    ? hmSetting.getScreenType()
-                    : hmSetting.screen_type.WATCHFACE;
+              try {
+                const currentScreenType = (typeof hmSetting !== 'undefined' && hmSetting.getScreenType)
+                  ? hmSetting.getScreenType()
+                  : hmSetting.screen_type.WATCHFACE;
 
-                  if (currentScreenType == hmSetting.screen_type.WATCHFACE) {
-                    if (!normal_timerTimeUpdate) {
-                      normal_timerTimeUpdate = timer.createTimer(0, 1000, (function (option) {
-                        try {
-                          let updateHour = timeSensor.minute == 0 && timeSensor.second < 2;
-                          let updateMinute = timeSensor.second < 2;
-                          time_update(updateHour, updateMinute);
-                        } catch (err) {
-                          console.log('normal timer tick error:', err);
-                        }
-                      }));
-                    }
+                if (currentScreenType == hmSetting.screen_type.WATCHFACE) {
+                  if (idle_timerTimeUpdate) {
+                    try { timer.stopTimer(idle_timerTimeUpdate); } catch (e) {}
+                    idle_timerTimeUpdate = undefined;
                   }
-
-                  if (currentScreenType == hmSetting.screen_type.AOD) {
-                    if (!idle_timerTimeUpdate) {
-                      idle_timerTimeUpdate = timer.createTimer(0, 1000, (function (option) {
-                        try {
-                          let updateHour = timeSensor.minute == 0 && timeSensor.second < 2;
-                          let updateMinute = timeSensor.second < 2;
-                          time_update(updateHour, updateMinute);
-                        } catch (err) {
-                          console.log('idle timer tick error:', err);
-                        }
-                      }));
-                    }
+                  if (normal_timerTimeUpdate) {
+                    try { timer.stopTimer(normal_timerTimeUpdate); } catch (e) {}
+                    normal_timerTimeUpdate = undefined;
                   }
-                } catch (e) {
-                  console.log('resume_call timer error:', e);
+                  normal_timerTimeUpdate = timer.createTimer(0, 1000, (function (option) {
+                    try {
+                      let now = new Date();
+                      let sec = (timeSensor && typeof timeSensor.second === 'number') ? timeSensor.second : now.getSeconds();
+                      let min = (timeSensor && typeof timeSensor.minute === 'number') ? timeSensor.minute : now.getMinutes();
+                      let updateHour = min === 0 && sec < 2;
+                      let updateMinute = sec < 2;
+                      time_update(updateHour, updateMinute);
+                    } catch (err) {
+                      console.log('normal timer tick error:', err);
+                    }
+                  }));
+                } else if (currentScreenType == hmSetting.screen_type.AOD) {
+                  if (normal_timerTimeUpdate) {
+                    try { timer.stopTimer(normal_timerTimeUpdate); } catch (e) {}
+                    normal_timerTimeUpdate = undefined;
+                  }
+                  if (idle_timerTimeUpdate) {
+                    try { timer.stopTimer(idle_timerTimeUpdate); } catch (e) {}
+                    idle_timerTimeUpdate = undefined;
+                  }
+                  idle_timerTimeUpdate = timer.createTimer(0, 1000, (function (option) {
+                    try {
+                      let now = new Date();
+                      let sec = (timeSensor && typeof timeSensor.second === 'number') ? timeSensor.second : now.getSeconds();
+                      let min = (timeSensor && typeof timeSensor.minute === 'number') ? timeSensor.minute : now.getMinutes();
+                      let updateHour = min === 0 && sec < 2;
+                      let updateMinute = sec < 2;
+                      time_update(updateHour, updateMinute);
+                    } catch (err) {
+                      console.log('idle timer tick error:', err);
+                    }
+                  }));
                 }
-              }),
-              pause_call: (function () {
-                console.log('pause_call()');
-                // Keep normal_timerTimeUpdate active so that returning from an app
-                // does not leave the second counter frozen when Zepp OS skips resume_call.
+              } catch (e) {
+                console.log('resumeWatchface timer error:', e);
+              }
+            };
+
+            pauseWatchface = function () {
+              console.log('pauseWatchface()');
+              try {
+                if (normal_timerTimeUpdate) {
+                  try { timer.stopTimer(normal_timerTimeUpdate); } catch (e) {}
+                  normal_timerTimeUpdate = undefined;
+                }
                 if (idle_timerTimeUpdate) {
                   try { timer.stopTimer(idle_timerTimeUpdate); } catch (e) {}
                   idle_timerTimeUpdate = undefined;
                 }
+              } catch (e) {
+                console.log('pauseWatchface error:', e);
+              }
+            };
+
+            const widgetDelegate = hmUI.createWidget(hmUI.widget.WIDGET_DELEGATE, {
+              resume_call: (function () {
+                console.log('widgetDelegate resume_call()');
+                resumeWatchface();
+              }),
+              pause_call: (function () {
+                console.log('widgetDelegate pause_call()');
+                pauseWatchface();
               }),
             });
+
+            resumeWatchface();
 
                 //dynamic modify end
             },
@@ -1234,8 +1281,17 @@
                 this.init_view();
                 logger.log('index page.js on ready invoke');
             },
+            onShow() {
+                logger.log('index page.js on show invoke');
+                resumeWatchface();
+            },
+            onHide() {
+                logger.log('index page.js on hide invoke');
+                pauseWatchface();
+            },
             onDestroy() {
                 logger.log('index page.js on destroy invoke');
+                pauseWatchface();
             }
         });
         ;
