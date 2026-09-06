@@ -1,0 +1,58 @@
+{
+  "configVersion": "v3",
+  "app": {
+    "appType": "watchface",
+    "appId": 7275339,
+    "appName": "nev_LCD_BYMAREK29_GB_GTR_4",
+    "version": {
+      "code": 1,
+      "name": "1.0.0"
+    },
+    "icon": "icon.png",
+    "vender": "zepp",
+    "description": "AryaMehr Enhanced Watchface for Amazfit GTR 4"
+  },
+  "runtime": {
+    "apiVersion": {
+      "minVersion": "1.0.0",
+      "target": "2.0.0",
+      "compatible": "2.0.0"
+    }
+  },
+  "targets": {
+    "466x466-gtr-4": {
+      "module": {
+        "watchface": {
+          "path": "watchface/index"
+        }
+      },
+      "designWidth": 466,
+      "platforms": [
+        {
+          "name": "Amazfit GTR 4",
+          "deviceSource": 7930112
+        },
+        {
+          "name": "Amazfit GTR 4",
+          "deviceSource": 7930113
+        },
+        {
+          "name": "Amazfit GTR 4",
+          "deviceSource": 7864576
+        },
+        {
+          "name": "Amazfit GTR 4",
+          "deviceSource": 7864577
+        }
+      ]
+    }
+  },
+  "permissions": [],
+  "i18n": {
+    "en-US": {
+      "name": "nev_LCD_BYMAREK29_GB_GTR_4"
+    }
+  },
+  "defaultLanguage": "en-US",
+  "debug": false
+}

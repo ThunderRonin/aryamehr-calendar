@@ -9,13 +9,14 @@ import {
   formatSyncTime,
 } from "../core/calendar-sync";
 import {
-  buildHeaderSection,
+  buildGuideSection,
   buildSubscriptionSection,
   buildSyncSection,
   buildQuickAddSection,
   buildEventListSection,
 } from "./components";
 
+declare const Section: any;
 declare const View: any;
 declare const Text: any;
 declare const TextInput: any;
@@ -98,10 +99,23 @@ export function createSettingsPageConfig() {
     },
 
     triggerSync() {
-      if (this.state.props?.settingsStorage) {
-        this.state.props.settingsStorage.setItem("syncStatus", "در حال همگام‌سازی...");
-        this.state.props.settingsStorage.setItem("syncTrigger", String(Date.now()));
+      const storage = this.state.props?.settingsStorage;
+      if (!storage) return;
+
+      const url = storage.getItem("calendarUrl") || this.state.calendarUrl;
+      const rawEvents = storage.getItem("personalEvents");
+      const hasEvents = rawEvents && rawEvents !== "[]";
+
+      if (!url && !hasEvents) {
+        storage.setItem(
+          "syncStatus",
+          "لطفاً ابتدا آدرس فید تقویم را وارد کنید یا رویدادی ثبت نمایید."
+        );
+        return;
       }
+
+      storage.setItem("syncStatus", "در حال همگام‌سازی...");
+      storage.setItem("syncTrigger", String(Date.now()));
     },
 
     build(props: any) {
@@ -120,68 +134,73 @@ export function createSettingsPageConfig() {
         }
       }
 
-      const syncStatus = storage?.getItem("syncStatus") || "آماده همگام‌سازی";
+      const syncStatus =
+        storage?.getItem("syncStatus") || "آماده همگام‌سازی (روی دکمه همگام‌سازی بزنید)";
       const lastSyncRaw = storage?.getItem("lastSyncTime") || "";
       const lastSyncFormatted = formatSyncTime(lastSyncRaw);
       const syncedCount = storage?.getItem("syncedEventCount") || "۰";
       const draftTitle = storage?.getItem("draftEventTitle") || this.state.newTitle || "";
       const draftDate = storage?.getItem("draftEventDate") || this.state.newDate || "";
 
+      const SectionComponent =
+        typeof Section !== "undefined"
+          ? Section
+          : typeof View !== "undefined"
+          ? View
+          : null;
+      const TextComponent = typeof Text !== "undefined" ? Text : null;
+      const TextInputComponent = typeof TextInput !== "undefined" ? TextInput : null;
+      const ButtonComponent = typeof Button !== "undefined" ? Button : null;
+
       const eventListSection = buildEventListSection(
-        View,
-        Text,
-        Button,
+        SectionComponent,
+        TextComponent,
+        ButtonComponent,
         personalEvents,
         (id) => this.deletePersonalEvent(id)
       );
 
-      return View(
-        {
-          style: {
-            padding: "16px",
-            backgroundColor: "#f8fafc",
-            minHeight: "100%",
-            fontFamily: "system-ui, -apple-system, sans-serif",
+      const sections = [
+        buildGuideSection(SectionComponent, TextComponent),
+        buildSubscriptionSection(SectionComponent, TextInputComponent, calendarUrl, (val) =>
+          this.setCalendarUrl(val)
+        ),
+        buildSyncSection(
+          SectionComponent,
+          TextComponent,
+          ButtonComponent,
+          syncStatus,
+          lastSyncFormatted,
+          syncedCount,
+          () => this.triggerSync()
+        ),
+        buildQuickAddSection(
+          SectionComponent,
+          TextInputComponent,
+          ButtonComponent,
+          draftTitle,
+          draftDate,
+          (val) => {
+            this.state.newTitle = val;
+            storage?.setItem("draftEventTitle", val);
           },
-        },
-        [
-          buildHeaderSection(View, Text),
-          buildSubscriptionSection(View, Text, TextInput, calendarUrl, (val) =>
-            this.setCalendarUrl(val)
-          ),
-          buildSyncSection(
-            View,
-            Text,
-            Button,
-            syncStatus,
-            lastSyncFormatted,
-            syncedCount,
-            () => this.triggerSync()
-          ),
-          buildQuickAddSection(
-            View,
-            Text,
-            TextInput,
-            Button,
-            draftTitle,
-            draftDate,
-            (val) => {
-              this.state.newTitle = val;
-              storage?.setItem("draftEventTitle", val);
-            },
-            (val) => {
-              this.state.newDate = val;
-              storage?.setItem("draftEventDate", val);
-            },
-            () => {
-              const title = storage?.getItem("draftEventTitle") || this.state.newTitle;
-              const date = storage?.getItem("draftEventDate") || this.state.newDate;
-              this.addPersonalEvent(title, date);
-            }
-          ),
-          ...(eventListSection ? [eventListSection] : []),
-        ]
-      );
+          (val) => {
+            this.state.newDate = val;
+            storage?.setItem("draftEventDate", val);
+          },
+          () => {
+            const title = storage?.getItem("draftEventTitle") || this.state.newTitle;
+            const date = storage?.getItem("draftEventDate") || this.state.newDate;
+            this.addPersonalEvent(title, date);
+          }
+        ),
+        ...(eventListSection ? [eventListSection] : []),
+      ].filter(Boolean);
+
+      if (typeof View !== "undefined") {
+        return View({}, sections);
+      }
+      return sections;
     },
   };
 }
