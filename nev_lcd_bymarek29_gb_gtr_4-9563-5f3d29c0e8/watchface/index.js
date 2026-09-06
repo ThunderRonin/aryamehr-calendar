@@ -96,6 +96,10 @@
             "ﻓﺮﻭﺭﺩﯾﻦ", "ﺍﺭﺩﯾﺒﻬﺸﺖ", "ﺧﺮﺩﺍﺩ", "ﺗﯿﺮ", "ﻣﺮﺩﺍﺩ", "ﺷﻬﺮﯾﻮﺭ",
             "ﻣﻬﺮ", "ﺁﺑﺎﻥ", "ﺁﺫﺭ", "ﺩﯼ", "ﺑﻬﻤﻦ", "ﺍﺳﻔﻨﺪ"
         ];
+        const KHORDSHIDI_MONTH_NAMES_EN = [
+            "FARVARDIN", "ORDIBEHESHT", "KHORDAD", "TIR", "MORDAD", "SHAHRIVAR",
+            "MEHR", "ABAN", "AZAR", "DEY", "BAHMAN", "ESFAND"
+        ];
         const PERSIAN_DIGITS_MAP = ["۰", "۱", "۲", "۳", "۴", "۵", "۶", "۷", "۸", "۹"];
         function toPersianDigits(n) {
             return String(n).replace(/\d/g, (d) => PERSIAN_DIGITS_MAP[d]);
@@ -492,9 +496,10 @@
               x: 75,
               y: 80,
               w: 190,
-              h: 32,
+              h: 30,
               text_size: 20,
-              color: 0xFFD4AF37,
+              font: 'fonts/REGISTER.TTF',
+              color: 0xFF00DE00,
               align_v: hmUI.align.CENTER_V,
               align_h: hmUI.align.CENTER_H,
               text_style: hmUI.text_style.ELLIPSIS,
@@ -805,9 +810,10 @@
               x: 75,
               y: 80,
               w: 190,
-              h: 32,
+              h: 30,
               text_size: 20,
-              color: 0xFFD4AF37,
+              font: 'fonts/REGISTER.TTF',
+              color: 0xFF969696,
               align_v: hmUI.align.CENTER_V,
               align_h: hmUI.align.CENTER_H,
               text_style: hmUI.text_style.ELLIPSIS,
@@ -1076,9 +1082,8 @@
                 let normal_dayStr = jDate.jd.toString().padStart(2, '0');
                 normal_day_text_font.setProperty(hmUI.prop.TEXT, normal_dayStr );
 
-                let pMonthName = RESHAPED_PERSIAN_MONTHS[jDate.jm - 1] || '';
-                let pDayDigits = toPersianDigits(jDate.jd);
-                let khorshidiFull = pDayDigits + ' ' + pMonthName;
+                let pMonthName = KHORDSHIDI_MONTH_NAMES_EN[jDate.jm - 1] || '';
+                let khorshidiFull = jDate.jd + ' ' + pMonthName;
                 if (normal_aryamehr_khorshidi_text) {
                   normal_aryamehr_khorshidi_text.setProperty(hmUI.prop.TEXT, khorshidiFull);
                 }
@@ -1123,9 +1128,8 @@
                 let idle_dayStr = jDate.jd.toString().padStart(2, '0');
                 idle_day_text_font.setProperty(hmUI.prop.TEXT, idle_dayStr );
 
-                let pMonthName = RESHAPED_PERSIAN_MONTHS[jDate.jm - 1] || '';
-                let pDayDigits = toPersianDigits(jDate.jd);
-                let khorshidiFull = pDayDigits + ' ' + pMonthName;
+                let pMonthName = KHORDSHIDI_MONTH_NAMES_EN[jDate.jm - 1] || '';
+                let khorshidiFull = jDate.jd + ' ' + pMonthName;
                 if (idle_aryamehr_khorshidi_text) {
                   idle_aryamehr_khorshidi_text.setProperty(hmUI.prop.TEXT, khorshidiFull);
                 }
