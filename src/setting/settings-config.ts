@@ -19,6 +19,7 @@ import {
 declare const Section: any;
 declare const View: any;
 declare const Text: any;
+declare const TextImageRow: any;
 declare const TextInput: any;
 declare const Button: any;
 
@@ -149,12 +150,14 @@ export function createSettingsPageConfig() {
           ? View
           : null;
       const TextComponent = typeof Text !== "undefined" ? Text : null;
+      const TextImageRowComponent = typeof TextImageRow !== "undefined" ? TextImageRow : null;
       const TextInputComponent = typeof TextInput !== "undefined" ? TextInput : null;
       const ButtonComponent = typeof Button !== "undefined" ? Button : null;
 
       const eventListSection = buildEventListSection(
         SectionComponent,
         TextComponent,
+        TextImageRowComponent,
         ButtonComponent,
         personalEvents,
         (id) => this.deletePersonalEvent(id)
@@ -162,12 +165,17 @@ export function createSettingsPageConfig() {
 
       const sections = [
         buildGuideSection(SectionComponent, TextComponent),
-        buildSubscriptionSection(SectionComponent, TextInputComponent, calendarUrl, (val) =>
-          this.setCalendarUrl(val)
+        buildSubscriptionSection(
+          SectionComponent,
+          TextInputComponent,
+          TextComponent,
+          calendarUrl,
+          (val) => this.setCalendarUrl(val)
         ),
         buildSyncSection(
           SectionComponent,
           TextComponent,
+          TextImageRowComponent,
           ButtonComponent,
           syncStatus,
           lastSyncFormatted,
@@ -177,6 +185,7 @@ export function createSettingsPageConfig() {
         buildQuickAddSection(
           SectionComponent,
           TextInputComponent,
+          TextComponent,
           ButtonComponent,
           draftTitle,
           draftDate,

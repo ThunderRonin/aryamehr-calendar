@@ -43,6 +43,10 @@ class MockSettingsStorage implements SettingsStorageLike {
   type: "TextInput",
   props,
 });
+(globalThis as any).TextImageRow = (props: any) => ({
+  type: "TextImageRow",
+  props,
+});
 (globalThis as any).Button = (props: any) => ({
   type: "Button",
   props,

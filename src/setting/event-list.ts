@@ -8,6 +8,7 @@ import { CalendarEvent } from "../core/calendar-sync";
 export function buildEventListSection(
   Section: any,
   Text: any,
+  TextImageRow: any,
   Button: any,
   personalEvents: CalendarEvent[],
   onDeleteClick: (id: string) => void
@@ -21,23 +22,40 @@ export function buildEventListSection(
       item.description ||
       (item.isAllDay ? "تمام روز" : new Date(item.startTimestamp).toLocaleDateString("fa-IR"));
 
-    eventWidgets.push(
-      Text({
-        label: `📅 ${item.title} (${itemDateStr})`,
-      })
-    );
-    eventWidgets.push(
-      Button({
-        label: `❌ حذف: ${item.title}`,
-        onClick: () => onDeleteClick(item.id),
-      })
-    );
+    if (TextImageRow) {
+      eventWidgets.push(
+        TextImageRow({
+          label: `📅 ${item.title}`,
+          sublabel: itemDateStr,
+        })
+      );
+    } else if (Text) {
+      eventWidgets.push(
+        Text(
+          {
+            paragraph: true,
+            style: { fontSize: "14px", color: "#222222", direction: "rtl", textAlign: "right" },
+          },
+          [`📅 ${item.title} (${itemDateStr})`]
+        )
+      );
+    }
+
+    if (Button) {
+      eventWidgets.push(
+        Button({
+          label: `❌ حذف رویداد: ${item.title}`,
+          color: "default",
+          style: { marginBottom: "12px" },
+          onClick: () => onDeleteClick(item.id),
+        })
+      );
+    }
   }
 
   return Section(
     {
       title: `رویدادهای شخصی ثبت‌شده (${personalEvents.length})`,
-      description: "برای حذف هر رویداد، روی دکمه حذف مربوطه بزنید:",
     },
     eventWidgets
   );
