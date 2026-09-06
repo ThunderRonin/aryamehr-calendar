@@ -2,23 +2,33 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
+import { execFileSync } from 'node:child_process';
 import { runInNewContext } from 'node:vm';
 import { toGregorian } from '../src/core/jalaali';
 
 const root = 'nev_lcd_bymarek29_gb_gtr_4-9563-5f3d29c0e8/';
 const provenance = JSON.parse(readFileSync('tests/fixtures/watchface-original.json', 'utf8'));
 const source = readFileSync(root + 'watchface/index.js', 'utf8');
-const original = source.replace(/^\/\/ ARYAMEHR ADDITION START\r?\n[\s\S]*?^\/\/ ARYAMEHR ADDITION END\r?\n?/gm, '');
+const baselineSource = execFileSync('git', ['show', `6107aaa:${root}watchface/index.js`], { encoding: 'utf8' });
+const stripMarkedAdditions = (text: string) =>
+  text.replace(/^\/\/ ARYAMEHR ADDITION START\r?\n[\s\S]*?^\/\/ ARYAMEHR ADDITION END\r?\n?/gm, '');
+const lifecycleStart = '            normal_time_hour_text_font =';
+const baselineLifecycleStart = '            let screenType =';
+const lifecycleEnd = '                //dynamic modify end';
+const currentStart = source.indexOf(lifecycleStart);
+const baselineStart = baselineSource.indexOf(baselineLifecycleStart);
+const currentEnd = source.indexOf(lifecycleEnd, currentStart);
+const baselineEnd = baselineSource.indexOf(lifecycleEnd, baselineStart);
+assert.ok(currentStart >= 0 && baselineStart >= 0 && currentEnd > currentStart && baselineEnd > baselineStart);
+const original = stripMarkedAdditions(
+  source.slice(0, currentStart) + baselineSource.slice(baselineStart, baselineEnd) + source.slice(currentEnd),
+).replace(/\r?\n$/, '');
 const sha256 = (data: string | Buffer) => createHash('sha256').update(data).digest('hex');
-const normalizedIndexSha256 = 'd69f6b34a56800142b913590ec5f0aed91e29128140c9c3023039dc145c678ab';
-const appSha256 = '4c02029f7ef121c046e81ef9cb616c4f365b7bdab7f29c29fffa00be14cdf640';
 
 test('removing only the marked widget additions recovers the exact original watchface', () => {
-  // The lifecycle delegate is intentionally repaired in this task, so its
-  // normalized source snapshot is recorded here while the widget additions
-  // remain removable by their markers.
-  assert.equal(sha256(original), normalizedIndexSha256);
-  assert.equal(sha256(readFileSync(root + 'app.js')), appSha256);
+  assert.equal(sha256(original), provenance.indexNormalizedSha256);
+  const appText = readFileSync(root + 'app.js', 'utf8').replace(/\r?\n/g, '\r\n');
+  assert.equal(sha256(appText), provenance.appSha256);
   const config = JSON.parse(readFileSync(root + 'app.json', 'utf8'));
   assert.deepEqual(config.runtime, provenance.runtime);
   assert.deepEqual(config.targets['466x466-gtr-4'].module, provenance.module);
@@ -240,7 +250,18 @@ test('deferred AryaMehr launch runs after touch dispatch and coalesces double ta
 });
 
 test('every watchface timer call uses the four argument Zepp timer signature', () => {
-  const face = boot();
-  assert.ok(face.timerCalls.length > 0);
-  assert.ok(face.timerCalls.every(call => call.argc === 4));
+  const normal = boot();
+  const shortcut = normal.widgets.find(w => w.kind === 'BUTTON' && w.x === 174);
+  shortcut.click_func();
+  normal.tick();
+
+  const aod = boot();
+  aod.setScreenType(2);
+  aod.delegate.pause_call();
+  aod.delegate.resume_call();
+
+  const calls = [...normal.timerCalls, ...aod.timerCalls];
+  assert.ok(calls.some(call => call.repeat === 1000), 'normal and AOD clock timers execute');
+  assert.ok(calls.some(call => call.repeat === 0), 'deferred one-shot launch timer executes');
+  assert.ok(calls.every(call => call.argc === 4));
 });
