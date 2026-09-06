@@ -489,11 +489,11 @@
             });
 
             normal_aryamehr_khorshidi_text = hmUI.createWidget(hmUI.widget.TEXT, {
-              x: 100,
-              y: 168,
-              w: 240,
+              x: 75,
+              y: 80,
+              w: 190,
               h: 32,
-              text_size: 22,
+              text_size: 20,
               color: 0xFFD4AF37,
               align_v: hmUI.align.CENTER_V,
               align_h: hmUI.align.CENTER_H,
@@ -802,11 +802,11 @@
             });
 
             idle_aryamehr_khorshidi_text = hmUI.createWidget(hmUI.widget.TEXT, {
-              x: 100,
-              y: 168,
-              w: 240,
+              x: 75,
+              y: 80,
+              w: 190,
               h: 32,
-              text_size: 22,
+              text_size: 20,
               color: 0xFFD4AF37,
               align_v: hmUI.align.CENTER_V,
               align_h: hmUI.align.CENTER_H,
@@ -1010,10 +1010,10 @@
             }); // end button
 
             Button_AryaMehr_Date = hmUI.createWidget(hmUI.widget.BUTTON, {
-              x: 80,
-              y: 155,
-              w: 290,
-              h: 48,
+              x: 70,
+              y: 75,
+              w: 200,
+              h: 44,
               text: '',
               press_src: '0_empty.png',
               normal_src: '0_empty.png',
