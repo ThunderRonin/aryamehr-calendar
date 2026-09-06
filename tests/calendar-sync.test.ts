@@ -5,7 +5,7 @@ import {
   getEventsForJalaaliDate,
   unescapeICalText,
   parseICalDateTime,
-  type CalendarEvent,
+  CalendarEvent,
 } from "../src/core/calendar-sync";
 import {
   saveCachedEvents,

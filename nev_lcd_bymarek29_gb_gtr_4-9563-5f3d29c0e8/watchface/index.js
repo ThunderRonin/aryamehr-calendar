@@ -1095,9 +1095,9 @@
                 let week = (timeSensor && typeof timeSensor.week === 'number') ? timeSensor.week : (jsDay === 0 ? 7 : jsDay);
 
                 if (updateHour) {
-                  let gYear = (timeSensor && timeSensor.year) || now.getFullYear();
-                  let gMonth = (timeSensor && timeSensor.month) || (now.getMonth() + 1);
-                  let gDay = (timeSensor && timeSensor.day) || now.getDate();
+                  let gYear = now.getFullYear();
+                  let gMonth = now.getMonth() + 1;
+                  let gDay = now.getDate();
                   let jDate = toJalaali(gYear, gMonth, gDay);
 
                   let normal_monthStr = jDate.jm.toString().padStart(2, '0');
@@ -1136,9 +1136,9 @@
                 if (normal_time_second_text_font) normal_time_second_text_font.setProperty(hmUI.prop.TEXT, normal_secondStr);
 
                 if (updateHour) {
-                  let gYear = (timeSensor && timeSensor.year) || now.getFullYear();
-                  let gMonth = (timeSensor && timeSensor.month) || (now.getMonth() + 1);
-                  let gDay = (timeSensor && timeSensor.day) || now.getDate();
+                  let gYear = now.getFullYear();
+                  let gMonth = now.getMonth() + 1;
+                  let gDay = now.getDate();
                   let jDate = toJalaali(gYear, gMonth, gDay);
 
                   let idle_monthStr = jDate.jm.toString().padStart(2, '0');
@@ -1215,43 +1215,39 @@
                     try { timer.stopTimer(idle_timerTimeUpdate); } catch (e) {}
                     idle_timerTimeUpdate = undefined;
                   }
-                  if (normal_timerTimeUpdate) {
-                    try { timer.stopTimer(normal_timerTimeUpdate); } catch (e) {}
-                    normal_timerTimeUpdate = undefined;
+                  if (!normal_timerTimeUpdate) {
+                    normal_timerTimeUpdate = timer.createTimer(0, 1000, (function (option) {
+                      try {
+                        let now = new Date();
+                        let sec = now.getSeconds();
+                        let min = now.getMinutes();
+                        let updateHour = min === 0 && sec < 2;
+                        let updateMinute = sec < 2;
+                        time_update(updateHour, updateMinute);
+                      } catch (err) {
+                        console.log('normal timer tick error:', err);
+                      }
+                    }));
                   }
-                  normal_timerTimeUpdate = timer.createTimer(0, 1000, (function (option) {
-                    try {
-                      let now = new Date();
-                      let sec = now.getSeconds();
-                      let min = now.getMinutes();
-                      let updateHour = min === 0 && sec < 2;
-                      let updateMinute = sec < 2;
-                      time_update(updateHour, updateMinute);
-                    } catch (err) {
-                      console.log('normal timer tick error:', err);
-                    }
-                  }));
                 } else if (currentScreenType == hmSetting.screen_type.AOD) {
                   if (normal_timerTimeUpdate) {
                     try { timer.stopTimer(normal_timerTimeUpdate); } catch (e) {}
                     normal_timerTimeUpdate = undefined;
                   }
-                  if (idle_timerTimeUpdate) {
-                    try { timer.stopTimer(idle_timerTimeUpdate); } catch (e) {}
-                    idle_timerTimeUpdate = undefined;
+                  if (!idle_timerTimeUpdate) {
+                    idle_timerTimeUpdate = timer.createTimer(0, 1000, (function (option) {
+                      try {
+                        let now = new Date();
+                        let sec = now.getSeconds();
+                        let min = now.getMinutes();
+                        let updateHour = min === 0 && sec < 2;
+                        let updateMinute = sec < 2;
+                        time_update(updateHour, updateMinute);
+                      } catch (err) {
+                        console.log('idle timer tick error:', err);
+                      }
+                    }));
                   }
-                  idle_timerTimeUpdate = timer.createTimer(0, 1000, (function (option) {
-                    try {
-                      let now = new Date();
-                      let sec = now.getSeconds();
-                      let min = now.getMinutes();
-                      let updateHour = min === 0 && sec < 2;
-                      let updateMinute = sec < 2;
-                      time_update(updateHour, updateMinute);
-                    } catch (err) {
-                      console.log('idle timer tick error:', err);
-                    }
-                  }));
                 }
               } catch (e) {
                 console.log('resumeWatchface timer error:', e);
