@@ -15,3 +15,5 @@ Validation: typecheck, build:ts, and git diff --check pass.
 Resolution: the expanded ownership completed the prior config and event-list handoff.
 Review round: added explicit primary-button, bounded-copy, native-prop, event-row, and delete-callback assertions.
 Validation: focused UI 2/2, full suite 60/60, typecheck, build:ts, and diff-check pass.
+Review round 2: traversal test now seeds and asserts the event row/delete button before allowlist and emoji checks.
+Validation: focused UI 2/2, full suite 60/60, typecheck, build:ts, and diff-check pass.

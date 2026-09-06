@@ -127,6 +127,19 @@ test("settings tree presents the feed, sync, manual event, and guide sections in
 test("settings controls preserve callbacks and use only native component props", () => {
   const page = createSettingsPageConfig();
   const storage = new SettingsStorage();
+  storage.setItem(
+    "personalEvents",
+    JSON.stringify([
+      {
+        id: "evt-2",
+        title: "یادآوری خرید",
+        description: "1405/06/16",
+        startTimestamp: 0,
+        endTimestamp: 0,
+        isAllDay: true,
+      },
+    ])
+  );
   const root = page.build({ settingsStorage: storage }) as TreeNode;
   const nodes = walk(root);
 
@@ -169,6 +182,10 @@ test("settings controls preserve callbacks and use only native component props",
   assert.equal(storage.getItem("syncTrigger") !== null, true);
 
   const manual = sections[2];
+  const eventList = sections[3];
+  assert.equal(eventList.props.title, "رویدادهای شخصی ثبت‌شده (1)");
+  assert.equal(eventList.children?.[0].type, "TextImageRow");
+  assert.equal(eventList.children?.[1].type, "Button");
   const titleChange = manual.children?.[1].props.onChange as (value: string) => void;
   const dateChange = manual.children?.[2].props.onChange as (value: string) => void;
   titleChange("جلسه");
@@ -178,5 +195,5 @@ test("settings controls preserve callbacks and use only native component props",
 
   const addClick = manual.children?.[manual.children.length - 1].props.onClick as () => void;
   addClick();
-  assert.equal(JSON.parse(storage.getItem("personalEvents") ?? "[]").length, 1);
+  assert.equal(JSON.parse(storage.getItem("personalEvents") ?? "[]").length, 2);
 });
