@@ -5,25 +5,29 @@
     "appId": 7275339,
     "appName": "nev_LCD_BYMAREK29_GB_GTR_4",
     "version": {
-      "code": 1,
-      "name": "1.0.0"
+      "code": 4,
+      "name": "1.0.3"
     },
     "icon": "icon.png",
     "vender": "zepp",
-    "description": "AryaMehr Enhanced Watchface for Amazfit GTR 4"
+    "description": "Original nev LCD watchface with AryaMehr date shortcut"
   },
   "runtime": {
     "apiVersion": {
-      "minVersion": "1.0.0",
-      "target": "2.0.0",
-      "compatible": "2.0.0"
+      "compatible": "1.0.0",
+      "target": "1.0.1",
+      "minVersion": "1.0.0"
     }
   },
   "targets": {
     "466x466-gtr-4": {
       "module": {
         "watchface": {
-          "path": "watchface/index"
+          "path": "watchface/index",
+          "main": 1,
+          "editable": 0,
+          "lockscreen": 1,
+          "hightCost": 0
         }
       },
       "designWidth": 466,
